@@ -8,12 +8,14 @@ type Particle struct {
     Position rl.Vector2
     Radius float32
     Color rl.Color
+    Mass float32
 }
 
-func NewParticle(position rl.Vector2, radius float32, color rl.Color) Particle {
+func NewParticle(position rl.Vector2, radius float32, mass float32, color rl.Color) Particle {
     return Particle {
         Position : position,
         Radius : radius,
+        Mass : mass,
         Color : color,
     }
 }
