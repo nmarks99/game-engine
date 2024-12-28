@@ -6,6 +6,7 @@ import (
 
 type Particle struct {
     Position rl.Vector2
+    Velocity rl.Vector2
     Radius float32
     Color rl.Color
     Mass float32
