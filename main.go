@@ -20,9 +20,12 @@ func main() {
 	rl.InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Physics Simulation")
 	border := rl.NewRectangle(BORDER_X, BORDER_Y, BORDER_WIDTH, BORDER_HEIGHT)
 
-	const particleX0 float32 = float32(SCREEN_WIDTH) / 6.0
-	const particleY0 float32 = float32(SCREEN_HEIGHT) / 2.0
-	particle := NewParticle(rl.NewVector2(particleX0, particleY0), 20, 1, rl.Blue)
+    floorY := border.Height + border.Y
+    var particle_radius float32 = 20.0
+    var particle_mass float32 = 1.0
+    particleX0 := float32(SCREEN_WIDTH) / 2.0
+    particleY0 := float32(floorY) + float32(particle_radius)
+	particle := NewParticle(rl.NewVector2(particleX0, particleY0), particle_radius, particle_mass, rl.Blue)
 
 	quitButton := NewButton("Quit",
 		func() {
@@ -37,11 +40,8 @@ func main() {
 	rl.SetTargetFPS(TARGET_FPS)
     
     t0 := time.Now()
-    var g float32 = 9.81 * 100.0 // scale to 100 pixels/meter
+    var g float32 = 9.81 * 200.0 // scale to pixels/s/s
     accel := rl.NewVector2(0.0, g)
-
-    floorY := border.Height + border.Y
-    
     dragging := false
 
 	for !rl.WindowShouldClose() {
@@ -70,7 +70,6 @@ func main() {
             if newPos.Y >= (floorY - particle.Radius) {
                 newPos.Y = floorY - particle.Radius
                 newVel.Y = 0.0
-                newVel.X = 0.0
             }
             particle.Velocity = newVel
             particle.Position = newPos 
