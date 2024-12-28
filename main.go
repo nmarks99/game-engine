@@ -42,26 +42,38 @@ func main() {
 
     floorY := border.Height + border.Y
     
+    dragging := false
+
 	for !rl.WindowShouldClose() {
 
 		mousePos := rl.GetMousePosition()
         timestamp := time.Since(t0)
-
-        // update position and velocity
-        newVel := rl.Vector2Add(particle.Velocity, rl.Vector2Scale(accel, dt))
-        newPos := rl.Vector2Add(particle.Position, rl.Vector2Scale(newVel, dt))
-        if newPos.Y >= (floorY - particle.Radius) {
-            newPos.Y = floorY - particle.Radius
-            newVel.Y = 0.0
-            newVel.X = 0.0
-        }
-        particle.Velocity = newVel
-        particle.Position = newPos
-
-        if rl.IsMouseButtonReleased(rl.MouseButtonLeft) {
-            particle.Position = mousePos
-            particle.Velocity.X = 0.0
-            particle.Velocity.Y = 0.0
+        
+        if rl.IsMouseButtonDown(rl.MouseButtonLeft) {
+            if rl.CheckCollisionPointCircle(mousePos, particle.Position, particle.Radius) {
+                particle.Color = rl.Green
+                particle.Position = mousePos
+                dragging = true
+            }
+        } 
+    
+        if dragging {
+            if rl.IsMouseButtonReleased(rl.MouseButtonLeft) {
+                dragging = false
+                particle.Color = rl.Blue
+            } else {
+                particle.Position = mousePos
+            }
+        } else {
+            newVel := rl.Vector2Add(particle.Velocity, rl.Vector2Scale(accel, dt))
+            newPos := rl.Vector2Add(particle.Position, rl.Vector2Scale(newVel, dt))
+            if newPos.Y >= (floorY - particle.Radius) {
+                newPos.Y = floorY - particle.Radius
+                newVel.Y = 0.0
+                newVel.X = 0.0
+            }
+            particle.Velocity = newVel
+            particle.Position = newPos 
         }
 
         // text for displaying various info
