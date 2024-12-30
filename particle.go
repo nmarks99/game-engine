@@ -9,7 +9,10 @@ type Particle struct {
     Velocity rl.Vector2
     Radius float32
     Color rl.Color
+    defaultColor rl.Color
+    clickedColor rl.Color
     Mass float32
+    dragging bool
 }
 
 func NewParticle(position rl.Vector2, radius float32, mass float32, color rl.Color) Particle {
@@ -18,6 +21,39 @@ func NewParticle(position rl.Vector2, radius float32, mass float32, color rl.Col
         Radius : radius,
         Mass : mass,
         Color : color,
+        defaultColor : color,
+        clickedColor : rl.Green,
+    }
+}
+
+func (p *Particle) Step(w World) {
+    if rl.IsMouseButtonDown(rl.MouseButtonLeft) {
+        if rl.CheckCollisionPointCircle(w.mousePos, p.Position, p.Radius) {
+            p.Color = p.clickedColor
+            p.Position = w.mousePos
+            p.dragging = true
+        }
+    }
+    if p.dragging {
+        if rl.IsMouseButtonReleased(rl.MouseButtonLeft) {
+            p.dragging = false
+            p.Color = p.defaultColor
+        } else {
+            p.Position = w.mousePos
+        }
+    } else {
+        newVel := rl.Vector2Add(p.Velocity, rl.Vector2Scale(w.accel, dt))
+        newPos := rl.Vector2Add(p.Position, rl.Vector2Scale(newVel, dt))
+        floorY := BORDER_HEIGHT + BORDER_Y
+        // TODO: damping should be world level variable
+        // TODO: collisions should be handled elsewhere?
+        const DAMPING float32 = 0.7
+        if newPos.Y >= (floorY - p.Radius) {
+            newPos.Y = floorY - p.Radius
+            newVel.Y = -newVel.Y * DAMPING
+        }
+        p.Velocity = newVel
+        p.Position = newPos 
     }
 }
 

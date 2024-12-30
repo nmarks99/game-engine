@@ -18,14 +18,26 @@ const dt float32 = 1.0 / float32(TARGET_FPS) // simulation timestep
 
 func main() {
 	rl.InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Physics Simulation")
+	rl.SetTargetFPS(TARGET_FPS)
+
 	border := rl.NewRectangle(BORDER_X, BORDER_Y, BORDER_WIDTH, BORDER_HEIGHT)
+
+    const g float32 = 9.81 * 250.0 // scale to pixels/s/s
+    world := NewWorld()
+    world.SetAcceleration(rl.NewVector2(0.0, g))
 
     floorY := border.Height + border.Y
     var particle_radius float32 = 20.0
     var particle_mass float32 = 1.0
     particleX0 := float32(SCREEN_WIDTH) / 2.0
     particleY0 := float32(floorY) + float32(particle_radius)
-	particle := NewParticle(rl.NewVector2(particleX0, particleY0), particle_radius, particle_mass, rl.Blue)
+	p1 := NewParticle(rl.NewVector2(particleX0, particleY0), particle_radius, particle_mass, rl.Blue)
+	p2 := NewParticle(rl.NewVector2(particleX0+particle_radius*2, particleY0), particle_radius, particle_mass, rl.Orange)
+	p3 := NewParticle(rl.NewVector2(particleX0+particle_radius*4, particleY0), particle_radius, particle_mass, rl.Purple)
+
+    world.AddRigidBody(&p1)
+    world.AddRigidBody(&p2)
+    world.AddRigidBody(&p3)
 
 	quitButton := NewButton("Quit",
 		func() {
@@ -36,60 +48,29 @@ func main() {
 		rl.NewVector2(60, 20), // size
 		rl.Black,
 	)
-
-	rl.SetTargetFPS(TARGET_FPS)
     
     t0 := time.Now()
-    var g float32 = 9.81 * 200.0 // scale to pixels/s/s
-    accel := rl.NewVector2(0.0, g)
-    dragging := false
 
 	for !rl.WindowShouldClose() {
 
 		mousePos := rl.GetMousePosition()
         timestamp := time.Since(t0)
-        
-        if rl.IsMouseButtonDown(rl.MouseButtonLeft) {
-            if rl.CheckCollisionPointCircle(mousePos, particle.Position, particle.Radius) {
-                particle.Color = rl.Green
-                particle.Position = mousePos
-                dragging = true
-            }
-        } 
-    
-        if dragging {
-            if rl.IsMouseButtonReleased(rl.MouseButtonLeft) {
-                dragging = false
-                particle.Color = rl.Blue
-            } else {
-                particle.Position = mousePos
-            }
-        } else {
-            newVel := rl.Vector2Add(particle.Velocity, rl.Vector2Scale(accel, dt))
-            newPos := rl.Vector2Add(particle.Position, rl.Vector2Scale(newVel, dt))
-            if newPos.Y >= (floorY - particle.Radius) {
-                newPos.Y = floorY - particle.Radius
-                newVel.Y = 0.0
-            }
-            particle.Velocity = newVel
-            particle.Position = newPos 
-        }
+
+        world.Step(mousePos)
 
         // text for displaying various info
         mousePosText := fmt.Sprintf("Mouse: %.2f, %.2f", mousePos.X, mousePos.Y)
-        particlePosText := fmt.Sprintf("Position: %.2f, %.2f", particle.Position.X, particle.Position.Y)
-        particleVelText := fmt.Sprintf("Velocity: %.2f, %.2f", particle.Velocity.X, particle.Velocity.Y)
         fmt.Printf("Time: %.2f\n", float32(timestamp.Milliseconds())/1000.0)
 
 		// --------------------- DRAWING ---------------------
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.RayWhite)
         rl.DrawRectangleLinesEx(border, 5.0, rl.Red)
-        rl.DrawText(particlePosText, 30, 30, 20, rl.Black)
-        rl.DrawText(particleVelText, 30, 50, 20, rl.Black)
-        rl.DrawText(mousePosText, 30, 70, 20, rl.Black)
-		quitButton.Draw(mousePos)
-		particle.Draw()
+        rl.DrawText(mousePosText, 30, 30, 20, rl.Black)
+        quitButton.Draw(mousePos)
+
+        world.Draw()
+
 		rl.EndDrawing()
 		// ---------------------------------------------------
 	}
