@@ -44,14 +44,6 @@ func (p *Particle) Step(w World) {
     } else {
         newVel := rl.Vector2Add(p.Velocity, rl.Vector2Scale(w.accel, dt))
         newPos := rl.Vector2Add(p.Position, rl.Vector2Scale(newVel, dt))
-        floorY := BORDER_HEIGHT + BORDER_Y
-        // TODO: damping should be world level variable
-        // TODO: collisions should be handled elsewhere?
-        const DAMPING float32 = 0.7
-        if newPos.Y >= (floorY - p.Radius) {
-            newPos.Y = floorY - p.Radius
-            newVel.Y = -newVel.Y * DAMPING
-        }
         p.Velocity = newVel
         p.Position = newPos 
     }

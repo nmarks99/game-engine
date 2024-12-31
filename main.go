@@ -26,18 +26,18 @@ func main() {
     world := NewWorld()
     world.SetAcceleration(rl.NewVector2(0.0, g))
 
-    floorY := border.Height + border.Y
+    // floorY := border.Height + border.Y
     var particle_radius float32 = 20.0
     var particle_mass float32 = 1.0
-    particleX0 := float32(SCREEN_WIDTH) / 2.0
-    particleY0 := float32(floorY) + float32(particle_radius)
+    var particleX0 float32 = float32(SCREEN_WIDTH) / 2.0
+    var particleY0 float32 = 100
 	p1 := NewParticle(rl.NewVector2(particleX0, particleY0), particle_radius, particle_mass, rl.Blue)
 	p2 := NewParticle(rl.NewVector2(particleX0+particle_radius*2, particleY0), particle_radius, particle_mass, rl.Orange)
 	p3 := NewParticle(rl.NewVector2(particleX0+particle_radius*4, particleY0), particle_radius, particle_mass, rl.Purple)
 
-    world.AddRigidBody(&p1)
-    world.AddRigidBody(&p2)
-    world.AddRigidBody(&p3)
+    world.AddParticle(&p1)
+    world.AddParticle(&p2)
+    world.AddParticle(&p3)
 
 	quitButton := NewButton("Quit",
 		func() {
