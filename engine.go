@@ -6,7 +6,8 @@ import (
     // "math"
 )
 
-const MAX_VELOCITY float32 = 1800.0 // pixels/sec
+const MAX_VELOCITY float32 = 3000.0 // pixels/sec
+const DAMPING float32 = 0.7
 
 type Engine struct {
 	particles  []*Particle
@@ -37,7 +38,6 @@ func (eng *Engine) AddParticle(p *Particle) {
 }
 
 func (eng Engine) resolveBorderCollision(p *Particle) {
-	const DAMPING float32 = 0.5
 	topLeft := rl.NewVector2(eng.borderRect.X, eng.borderRect.Y)
 	topRight := rl.NewVector2(eng.borderRect.X+eng.borderRect.Width, eng.borderRect.Y)
 	bottomLeft := rl.NewVector2(eng.borderRect.X, eng.borderRect.Y+eng.borderRect.Height)
@@ -89,10 +89,21 @@ func updateCollisionVelocities(p1 *Particle, p2 *Particle) {
     p2.Velocity = v2_new
 }
 
+func resolveParticleOverlap(p1, p2 *Particle) {
+    distance := rl.Vector2Length(rl.Vector2Subtract(p1.Position, p2.Position))
+    overlap := p1.Radius + p2.Radius - distance
+    if overlap > 0 {
+        correction := rl.Vector2Scale(rl.Vector2Normalize(rl.Vector2Subtract(p1.Position, p2.Position)), overlap/2)
+        p1.Position = rl.Vector2Add(p1.Position, correction)
+        p2.Position = rl.Vector2Subtract(p2.Position, correction)
+    }
+}
+
 func (eng Engine) resolveParticleCollision(p1 *Particle) {
     for _, p2 := range eng.particles {
         if p1.id != p2.id {
             if rl.CheckCollisionCircles(p1.Position, p1.Radius, p2.Position, p2.Radius) {
+                resolveParticleOverlap(p1, p2)
                 updateCollisionVelocities(p1, p2)
             }
         }
@@ -111,6 +122,6 @@ func (eng *Engine) Update(mousePos rl.Vector2) {
 func (eng Engine) Draw() {
 	for _, p := range eng.particles {
 		p.Draw()
-		rl.DrawRectangleLinesEx(eng.borderRect, 5.0, rl.Black)
+		// rl.DrawRectangleLinesEx(eng.borderRect, 5.0, rl.Black)
 	}
 }
