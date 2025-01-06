@@ -1,4 +1,4 @@
-module cp-test
+module simple-game-engine
 
 go 1.23.3
 

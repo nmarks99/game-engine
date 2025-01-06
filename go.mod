@@ -1,4 +1,4 @@
-module simple-game-engine
+module engine
 
 go 1.23.3
 
