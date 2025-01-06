@@ -81,11 +81,6 @@ type Wall struct {
 	cpBody  *cp.Body
 }
 
-// func (w *Wall) SetVertices(vertex1 Vector2, vertex2 Vector2) {
-	// w.Vertex1 = vertex1
-	// w.Vertex2 = vertex2
-// }
-
 func NewWall(vertex1 Vector2, vertex2 Vector2, width float64, color rl.Color) Wall {
 	return Wall{
 		Vertex1: vertex1,

@@ -10,21 +10,41 @@ import (
 type Entity interface{}
 
 type Game struct {
-	space    *cp.Space
-	bodies   []*cp.Body
-	entities []Entity
+	screenWidth    int32
+	screenHeight   int32
+	targetFPS      int32
+	windowName     string
+	space          *cp.Space
+	bodies         []*cp.Body
+	entities       []Entity
+	updateCallback func(*Game)
+	drawCallback   func(*Game)
 }
 
-func NewGame() Game {
+func NewGame(screenWidth int32, screenHeight int32, targetFPS int32) Game {
 	space := cp.NewSpace()
-	return Game{
-		space: space,
+	game := Game{
+		screenWidth:  screenWidth,
+		screenHeight: screenHeight,
+		targetFPS:    targetFPS,
+		windowName:   "Game",
+		space:        space,
 	}
+	rl.InitWindow(game.screenWidth, game.screenHeight, game.windowName)
+	rl.SetTargetFPS(game.targetFPS)
+	return game
+}
+
+func (game *Game) SetUpdateCallback(callback func(*Game)) {
+	game.updateCallback = callback
+}
+
+func (game *Game) SetDrawCallback(callback func(*Game)) {
+	game.drawCallback = callback
 }
 
 func (game *Game) Update() {
-	const TARGET_FPS float64 = 60.0
-	game.space.Step(1.0 / TARGET_FPS)
+	game.space.Step(1.0 / float64(game.targetFPS))
 }
 
 func (game Game) Draw() {
@@ -40,7 +60,7 @@ func (game Game) Draw() {
 			rl.DrawRectanglePro(boxRect, rl.NewVector2(boxRect.Width/2, boxRect.Height/2), float32(angle), entity.Color)
 		case *Wall:
 			if entity.Visible {
-                rl.DrawLineEx(entity.Vertex1.ToRaylib(), entity.Vertex2.ToRaylib(), float32(entity.Width), entity.Color)
+				rl.DrawLineEx(entity.Vertex1.ToRaylib(), entity.Vertex2.ToRaylib(), float32(entity.Width), entity.Color)
 			}
 		default:
 			fmt.Println("Unknown entity type")
@@ -49,10 +69,32 @@ func (game Game) Draw() {
 
 }
 
+func (game *Game) Run() {
+
+	for !rl.WindowShouldClose() {
+		game.Update()
+		if game.updateCallback != nil {
+			game.updateCallback(game)
+		}
+
+		// ---------- Drawing ----------
+		rl.BeginDrawing()
+		rl.ClearBackground(rl.RayWhite)
+		game.Draw()
+		if game.drawCallback != nil {
+			game.drawCallback(game)
+		}
+		rl.EndDrawing()
+		// -----------------------------
+	}
+
+	rl.CloseWindow()
+}
+
 func (game *Game) AddEntity(entity Entity) {
 	var body *cp.Body
 	var shape *cp.Shape
-    
+
 	switch e := entity.(type) {
 	case *Particle:
 		body = game.space.AddBody(cp.NewBody(e.Mass, cp.MomentForCircle(e.Mass, 0.0, e.Radius, cp.Vector{})))
@@ -78,19 +120,19 @@ func (game *Game) AddEntity(entity Entity) {
 		game.bodies = append(game.bodies, body)
 		game.entities = append(game.entities, e)
 	case *Wall:
-        body = cp.NewStaticBody()
+		body = cp.NewStaticBody()
 		shape = game.space.AddShape(cp.NewSegment(body, cp.Vector{X: e.Vertex1.X, Y: e.Vertex1.Y}, cp.Vector{X: e.Vertex2.X, Y: e.Vertex2.Y}, e.Width/2))
 		shape.SetElasticity(1)
 		shape.SetFriction(1)
 
-        e.id = uint64(len(game.bodies))
-        e.cpBody = body
-        game.bodies = append(game.bodies, body)
-        game.entities = append(game.entities, e)
+		e.id = uint64(len(game.bodies))
+		e.cpBody = body
+		game.bodies = append(game.bodies, body)
+		game.entities = append(game.entities, e)
 	default:
 		fmt.Println("Unknown entity type")
+		return
 	}
-
 }
 
 type Vector2 struct {
