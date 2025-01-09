@@ -8,7 +8,7 @@ import (
 
 func main() {
 	const (
-		SCREEN_WIDTH  int32 = 600
+		SCREEN_WIDTH  int32 = 1000
 		SCREEN_HEIGHT int32 = 600
 		TARGET_FPS    int32 = 60
 	)
@@ -19,11 +19,20 @@ func main() {
 	// Create some objects
 	p1 := NewParticle(NewVector2(50.0, 200.0), 20.0, 1.0, rl.Green)
 	p2 := NewParticle(NewVector2(200.0, 185.0), 20.0, 1.0, rl.Red)
-	b1 := NewBox(NewVector2(200, 300), 100.0, 20.0, 1.0, rl.Purple)
-	p1.Velocity.X = 200
+	p3 := NewParticle(NewVector2(300.0, 185.0), 20.0, 1.0, rl.Black)
+	b1 := NewBox(NewVector2(200.0, 300.0), 100.0, 20.0, 0.2, rl.Purple)
+	b2 := NewBox(NewVector2(220.0, 350.0), 50.0, 50.0, 0.2, rl.DarkBlue)
+	b3 := NewBox(NewVector2(400.0, 330.0), 50.0, 70.0, 0.2, rl.Orange)
+	b4 := NewBox(NewVector2(600.0, 400.0), 50.0, 70.0, 0.2, rl.DarkGreen)
+	p1.Velocity.X = 400
+	p2.Velocity.X = -400
 	game.AddEntity(&p1)
 	game.AddEntity(&p2)
+	game.AddEntity(&p3)
 	game.AddEntity(&b1)
+	game.AddEntity(&b2)
+	game.AddEntity(&b3)
+	game.AddEntity(&b4)
 
 	// Create a permiter wall
 	wallWidth := 5.0
