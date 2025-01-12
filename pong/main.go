@@ -4,6 +4,7 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
     . "engine"
     "math"
+    "fmt"
 )
 
 func main() {
@@ -38,35 +39,63 @@ func main() {
 	ball := NewParticle(NewVector2(250.0, 50.0), ballRadius, 1.0, rl.DarkGreen)
     game.AddEntity(&ball)    
 
+    ballTexture := rl.LoadTexture("../assets/planets/Terran.png")
+    
     // add custom draw function for ball to draw line for angle
     ball_line_draw_cbk := func(p *Particle) {
+
+        pos := p.Position()
+        pos.X -= p.Radius()
+        pos.Y -= p.Radius()
+       
+        ballTextureW := float32(ballTexture.Width)
+        ballTextureH := float32(ballTexture.Height)
+        srcRect := rl.NewRectangle(0, 0, ballTextureW, ballTextureH)
+        destRect := rl.NewRectangle(float32(pos.X), float32(pos.Y), ballTextureW, ballTextureH)
+        origin := rl.NewVector2(ballTextureW/2, ballTextureH/2)
+
+        angle := float32(p.Angle()*180.0/math.Pi)
+        // angle := 0.0
+        rl.DrawTexturePro(ballTexture, srcRect, destRect, origin, float32(angle), rl.White)
+
         DefaultParticleDrawFunc(p)
         x0 := p.Position().X - p.Radius() * math.Cos(p.Angle())
         y0 := p.Position().Y - p.Radius() * math.Sin(p.Angle())
         x1 := p.Position().X + p.Radius() * math.Cos(p.Angle())
         y1 := p.Position().Y + p.Radius() * math.Sin(p.Angle())
-        rl.DrawLineEx(NewVector2(x0, y0).ToRaylib(), NewVector2(x1, y1).ToRaylib(), 3, rl.Yellow) 
+        rl.DrawLineEx(NewVector2(x0, y0).ToRaylib(), NewVector2(x1, y1).ToRaylib(), 3, rl.Yellow)
     }
     ball.SetDrawCallback(ball_line_draw_cbk)
 
-    // Custom game callback
+    cursor := rl.LoadTexture("../assets/Tiles/tile_0026.png")
+    rl.HideCursor()
+
+    var mousePos rl.Vector2
+
     game.SetUpdateCallback(func(game *Game) {
-        mousePos := rl.GetMousePosition()
+        mousePos = rl.GetMousePosition()
         mouseVel := rl.Vector2Scale(rl.GetMouseDelta(), 50.0)
 
-        if rl.IsMouseButtonReleased(rl.MouseButtonRight) {
+        if rl.IsMouseButtonReleased(rl.MouseButtonLeft) {
 	        new_ball := NewParticle(NewVector2(float64(mousePos.X), float64(mousePos.Y)), ballRadius, 1.0, rl.DarkGreen)
             new_ball.SetDrawCallback(ball_line_draw_cbk)
             new_ball.SetVelocity(float64(mouseVel.X), float64(mouseVel.Y))
             game.AddEntity(&new_ball)
         }
 
-        if rl.IsMouseButtonReleased(rl.MouseButtonMiddle) {
+        if rl.IsMouseButtonReleased(rl.MouseButtonRight) {
             const boxWidth float64 = 50.0
             new_box := NewBox(NewVector2(float64(mousePos.X), float64(mousePos.Y)), boxWidth, boxWidth, 1.0, rl.Red)
             new_box.SetVelocity(float64(mouseVel.X), float64(mouseVel.Y))
             game.AddEntity(&new_box)
         }
+
+        fmt.Printf("Mouse: %.2f, %.2f\n", mousePos.X, mousePos.Y)
+        fmt.Printf("Ball: %.2f, %.2f\n", ball.Position().X, ball.Position().Y)
+    })
+
+    game.SetDrawCallback(func(game *Game){
+        rl.DrawTextureV(cursor, mousePos, rl.White)
     })
     
 	// Run the main game loop
