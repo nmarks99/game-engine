@@ -8,15 +8,15 @@ import (
 
 func main() {
 	const (
-		SCREEN_WIDTH  int32 = 500
-		SCREEN_HEIGHT int32 = 500
+		SCREEN_WIDTH  int32 = 1000
+		SCREEN_HEIGHT int32 = 800
 		TARGET_FPS    int32 = 60
 	)
 
 	// Create a new game instance
 	game := NewGame(SCREEN_WIDTH, SCREEN_HEIGHT, TARGET_FPS)
-    game.SetGravity(NewVector2(0.0, 400.0))
-    // game.SetDamping(1.0)
+    // game.SetGravity(NewVector2(0.0, 800.0))
+    game.SetDamping(0.9)
 
 	// Create a permiter wall
 	wallWidth := 5.0
@@ -34,31 +34,39 @@ func main() {
 	game.AddEntity(&wallLeft)
 
     // create ball
-	ball := NewParticle(NewVector2(250.0, 50.0), 20.0, 1.0, rl.DarkBlue)
+    ballRadius := 20.0
+	ball := NewParticle(NewVector2(250.0, 50.0), ballRadius, 1.0, rl.DarkGreen)
     game.AddEntity(&ball)    
-    ball.SetElasticity(1.0)
-    ball.SetFriction(1.0)
 
     // add custom draw function for ball to draw line for angle
-    ball.SetDrawCallback(func(p *Particle) {
-        DefaultParticleDrawFunc(&ball)
-        x := ball.Position().X + ball.Radius() * math.Cos(ball.Angle())
-        y := ball.Position().Y + ball.Radius() * math.Sin(ball.Angle())
-        rl.DrawLineEx(ball.Position().ToRaylib(), NewVector2(x, y).ToRaylib(), 3, rl.White) 
-    })
+    ball_line_draw_cbk := func(p *Particle) {
+        DefaultParticleDrawFunc(p)
+        x0 := p.Position().X - p.Radius() * math.Cos(p.Angle())
+        y0 := p.Position().Y - p.Radius() * math.Sin(p.Angle())
+        x1 := p.Position().X + p.Radius() * math.Cos(p.Angle())
+        y1 := p.Position().Y + p.Radius() * math.Sin(p.Angle())
+        rl.DrawLineEx(NewVector2(x0, y0).ToRaylib(), NewVector2(x1, y1).ToRaylib(), 3, rl.Yellow) 
+    }
+    ball.SetDrawCallback(ball_line_draw_cbk)
 
-    // Create paddle
-    paddle := NewBox(NewVector2(100,100), 100, 10, math.Inf(1), rl.Red) 
-    game.AddEntity(&paddle)
-    paddle.SetKinematic()
-    paddle.SetElasticity(1.0)
-    paddle.SetFriction(1.0)
-
+    // Custom game callback
     game.SetUpdateCallback(func(game *Game) {
         mousePos := rl.GetMousePosition()
-        mouseVel := rl.GetMouseDelta()
-        paddle.SetPosition(float64(mousePos.X), float64(mousePos.Y))
-        paddle.SetVelocity(float64(mouseVel.X)*50.0, float64(mouseVel.Y))
+        mouseVel := rl.Vector2Scale(rl.GetMouseDelta(), 50.0)
+
+        if rl.IsMouseButtonReleased(rl.MouseButtonRight) {
+	        new_ball := NewParticle(NewVector2(float64(mousePos.X), float64(mousePos.Y)), ballRadius, 1.0, rl.DarkGreen)
+            new_ball.SetDrawCallback(ball_line_draw_cbk)
+            new_ball.SetVelocity(float64(mouseVel.X), float64(mouseVel.Y))
+            game.AddEntity(&new_ball)
+        }
+
+        if rl.IsMouseButtonReleased(rl.MouseButtonMiddle) {
+            const boxWidth float64 = 50.0
+            new_box := NewBox(NewVector2(float64(mousePos.X), float64(mousePos.Y)), boxWidth, boxWidth, 1.0, rl.Red)
+            new_box.SetVelocity(float64(mouseVel.X), float64(mouseVel.Y))
+            game.AddEntity(&new_box)
+        }
     })
     
 	// Run the main game loop

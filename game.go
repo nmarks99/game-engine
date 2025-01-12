@@ -8,32 +8,38 @@ import (
 )
 
 type Game struct {
-	screenWidth    int32
-	screenHeight   int32
-	targetFPS      int32
-	windowName     string
-	space          *cp.Space
-	entities       []Entity
-	updateCallback func(*Game)
-	drawCallback   func(*Game)
+	screenWidth     int32
+	screenHeight    int32
+	targetFPS       int32
+	windowName      string
+	space           *cp.Space
+	entities        []Entity
+	backgroundColor rl.Color
+	updateCallback  func(*Game)
+	drawCallback    func(*Game)
 }
 
 func NewGame(screenWidth int32, screenHeight int32, targetFPS int32) Game {
 	space := cp.NewSpace()
 	game := Game{
-		screenWidth:  screenWidth,
-		screenHeight: screenHeight,
-		targetFPS:    targetFPS,
-		windowName:   "Game",
-		space:        space,
+		screenWidth:     screenWidth,
+		screenHeight:    screenHeight,
+		targetFPS:       targetFPS,
+		windowName:      "Game",
+		backgroundColor: rl.RayWhite,
+		space:           space,
 	}
 	rl.InitWindow(game.screenWidth, game.screenHeight, game.windowName)
 	rl.SetTargetFPS(game.targetFPS)
 	return game
 }
 
-func (game Game) Dt() float64{
-    return 1.0 / float64(game.targetFPS)
+func (game Game) Dt() float64 {
+	return 1.0 / float64(game.targetFPS)
+}
+
+func (game *Game) SetBackgroundColor(color rl.Color) {
+    game.backgroundColor = color
 }
 
 func (game *Game) SetUpdateCallback(callback func(*Game)) {
@@ -105,7 +111,7 @@ func (game *Game) Run() {
 
 		// ---------- Drawing ----------
 		rl.BeginDrawing()
-		rl.ClearBackground(rl.RayWhite)
+		rl.ClearBackground(game.backgroundColor)
 		game.Draw()
 		if game.drawCallback != nil {
 			game.drawCallback(game)
@@ -115,6 +121,17 @@ func (game *Game) Run() {
 	}
 
 	rl.CloseWindow()
+}
+// Limit velocity to the specified max speed
+func (p Particle) limitVelocity(body *cp.Body, gravity cp.Vector, damping float64, dt float64) {
+    maxSpeed := p.velocityMax // Maximum speed (pixels/second)
+	cp.BodyUpdateVelocity(body, gravity, damping, dt)
+	velocity := body.Velocity()
+	speed := math.Sqrt(velocity.X*velocity.X + velocity.Y*velocity.Y)
+	if speed > maxSpeed {
+		scale := maxSpeed / speed
+		body.SetVelocity(velocity.X*scale, velocity.Y*scale)
+	}
 }
 
 func (game *Game) AddEntity(entity Entity) {
@@ -131,6 +148,8 @@ func (game *Game) AddEntity(entity Entity) {
 		shape.SetElasticity(e.elasticity)
 		shape.SetFriction(e.friction)
 
+        body.SetVelocityUpdateFunc(e.limitVelocity)
+
 		e.id = uint64(len(game.entities))
 		e.cpBody = body
 		e.cpShape = shape
@@ -138,6 +157,7 @@ func (game *Game) AddEntity(entity Entity) {
 	case *Box:
 		body = game.space.AddBody(cp.NewBody(e.Mass, cp.MomentForBox(e.Mass, e.Width, e.Height)))
 		body.SetPosition(cp.Vector{X: e.position.X, Y: e.position.Y})
+		body.SetVelocity(e.velocity.X, e.velocity.Y)
 		shape = game.space.AddShape(cp.NewBox(body, e.Width, e.Height, 0))
 		shape.SetElasticity(e.elasticity)
 		shape.SetFriction(e.friction)
