@@ -1,15 +1,14 @@
 package main
 
 import (
-	"fmt"
 	rl "github.com/gen2brain/raylib-go/raylib"
     . "engine"
 )
 
 func main() {
 	const (
-		SCREEN_WIDTH  int32 = 1000
-		SCREEN_HEIGHT int32 = 600
+		SCREEN_WIDTH  int32 = 500
+		SCREEN_HEIGHT int32 = 500
 		TARGET_FPS    int32 = 60
 	)
 
@@ -23,9 +22,9 @@ func main() {
 	b1 := NewBox(NewVector2(200.0, 300.0), 100.0, 20.0, 0.2, rl.Purple)
 	b2 := NewBox(NewVector2(220.0, 350.0), 50.0, 50.0, 0.2, rl.DarkBlue)
 	b3 := NewBox(NewVector2(400.0, 330.0), 50.0, 70.0, 0.2, rl.Orange)
-	b4 := NewBox(NewVector2(600.0, 400.0), 50.0, 70.0, 0.2, rl.DarkGreen)
-	p1.Velocity.X = 400
-	p2.Velocity.X = -400
+	b4 := NewBox(NewVector2(300.0, 400.0), 50.0, 70.0, 0.2, rl.DarkGreen)
+	p1.SetVelocity(200, 0)
+	p2.SetVelocity(-200, 0)
 	game.AddEntity(&p1)
 	game.AddEntity(&p2)
 	game.AddEntity(&p3)
@@ -49,17 +48,18 @@ func main() {
 	game.AddEntity(&wallBot)
 	game.AddEntity(&wallLeft)
 
-	// Add custom update and draw functions
-	var mousePos rl.Vector2
-	var mousePosText string
 	game.SetUpdateCallback(func(game *Game) {
-		mousePos = rl.GetMousePosition()
-		mousePosText = fmt.Sprintf("%.2f, %.2f", mousePos.X, mousePos.Y)
+        if rl.IsMouseButtonDown(rl.MouseButtonLeft) {
+            p1.Fix()
+        }
+        if rl.IsMouseButtonReleased(rl.MouseButtonLeft) {
+            p1.Unfix()
+        }
 	})
 
-	game.SetDrawCallback(func(game *Game) {
-		rl.DrawText(mousePosText, 10, 10, 18, rl.DarkBlue)
-	})
+	// game.SetDrawCallback(func(game *Game) {
+		// // rl.DrawText(mousePosText, 10, 10, 18, rl.DarkBlue)
+	// })
 
 	// Run the main game loop
 	game.Run()
