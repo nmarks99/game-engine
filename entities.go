@@ -13,16 +13,69 @@ type Entity interface{}
 type Particle struct {
 	position       Vector2
 	velocity       Vector2
-	Radius         float64
-	Mass           float64
-	Elasticity     float64
-	Friction       float64
-	Color          rl.Color
+	radius         float64
+	mass           float64
+	elasticity     float64
+	friction       float64
+	color          rl.Color
 	updateCallback func(*Particle)
 	drawCallback   func(*Particle)
 	id             uint64
 	cpBody         *cp.Body
 	cpShape        *cp.Shape
+}
+
+func (p Particle) Radius() float64 {
+    return p.radius
+}
+
+func (p *Particle) SetMass(m float64) {
+    p.mass = m
+    if p.cpBody != nil {
+        p.cpBody.SetMass(m)
+    }
+}
+
+func (p Particle) Mass() float64 {
+    if p.cpBody != nil {
+        return p.cpBody.Mass()
+    } else {
+        return p.mass
+    }
+}
+
+func (p *Particle) SetElasticity(e float64) {
+    p.elasticity = e
+    if p.cpShape != nil {
+        p.cpShape.SetElasticity(e)
+    }
+}
+
+func (p Particle) Elasticity() float64 {
+    if p.cpShape != nil {
+        return p.cpShape.Elasticity()
+    } else {
+        return p.elasticity
+    }
+}
+
+func (p *Particle) SetFriction(f float64) {
+    p.friction = f
+    if p.cpShape != nil {
+        p.cpShape.SetFriction(f)
+    }
+}
+
+func (p Particle) Friction() float64 {
+    if p.cpShape != nil {
+        return p.cpShape.Friction()
+    } else {
+        return p.friction
+    }
+}
+
+func (p Particle) Angle() float64 {
+    return p.cpBody.Angle()
 }
 
 func (p *Particle) SetUpdateCallback(callback func(*Particle)) {
@@ -42,7 +95,7 @@ func (p *Particle) Fix() {
 
 func (p *Particle) Unfix() {
     if p.cpBody != nil {
-        p.cpBody.SetMass(p.Mass)
+        p.cpBody.SetMass(p.mass)
     }
 }
 
@@ -80,49 +133,125 @@ func (p *Particle) SetPosition(x float64, y float64) {
 	}
 }
 
-func defaultDrawCallback(p *Particle) {
+func DefaultParticleDrawFunc(p *Particle) {
 	pos := p.Position()
-	rl.DrawCircle(int32(pos.X), int32(pos.Y), float32(p.Radius), p.Color)
+	rl.DrawCircle(int32(pos.X), int32(pos.Y), float32(p.radius), p.color)
 }
 
 func NewParticle(position Vector2, radius float64, mass float64, color rl.Color) Particle {
 	pOut := Particle{
 		position:   position,
-		Radius:     radius,
-		Mass:       mass,
-		Color:      color,
-		Elasticity: 1.0,
-		Friction:   1.0,
+		radius:     radius,
+		mass:       mass,
+		color:      color,
+		elasticity: 1.0,
+		friction:   1.0,
 	}
-	pOut.SetDrawCallback(defaultDrawCallback)
+	pOut.SetDrawCallback(DefaultParticleDrawFunc)
 	return pOut
 }
 
 
+
 type Box struct {
-	Position   Vector2
-	Velocity   Vector2
+	position   Vector2
+	velocity   Vector2
 	Width      float64
 	Height     float64
 	Mass       float64
-	Elasticity float64
-	Friction   float64
+	elasticity float64
+	friction   float64
 	Color      rl.Color
+	updateCallback func(*Particle)
+	drawCallback   func(*Particle)
 	id         uint64
 	cpBody     *cp.Body
+	cpShape     *cp.Shape
+}
+
+func (b *Box) SetElasticity(e float64) {
+    b.elasticity = e
+    if b.cpShape != nil {
+        b.cpShape.SetElasticity(e)
+    }
+}
+
+func (b Box) Elasticity() float64 {
+    if b.cpShape != nil {
+        return b.cpShape.Elasticity()
+    } else {
+        return b.elasticity
+    }
+}
+
+func (b *Box) SetFriction(f float64) {
+    b.friction = f
+    if b.cpShape != nil {
+        b.cpShape.SetFriction(f)
+    }
+}
+
+func (b Box) Friction() float64 {
+    if b.cpShape != nil {
+        return b.cpShape.Friction()
+    } else {
+        return b.friction
+    }
+}
+
+func (b Box) Velocity() Vector2 {
+    if b.cpBody != nil {
+        return NewVector2(b.cpBody.Velocity().X, b.cpBody.Velocity().Y)
+    } else {
+        return b.velocity
+    }
+}
+
+func (b *Box) SetVelocity(x float64, y float64) {
+	b.velocity.X = x
+	b.velocity.Y = y
+
+	if b.cpBody != nil {
+		b.cpBody.SetVelocity(x, y)
+	}
+}
+
+func (b Box) Position() Vector2 {
+    if b.cpBody != nil {
+        return NewVector2(b.cpBody.Position().X, b.cpBody.Position().Y)
+    } else {
+        return b.position
+    }
+}
+
+func (b *Box) SetPosition(x float64, y float64) {
+	b.position.X = x
+	b.position.Y = y
+
+	if b.cpBody != nil {
+        b.cpBody.SetPosition(cp.Vector{X: x, Y: y})
+	}
+}
+
+func (b *Box) SetKinematic() {
+    if b.cpBody != nil {
+        b.cpBody.SetType(cp.BODY_KINEMATIC)
+    }
 }
 
 func NewBox(position Vector2, width float64, height float64, mass float64, color rl.Color) Box {
 	return Box{
-		Position:   position,
+		position:   position,
 		Width:      width,
 		Height:     height,
 		Mass:       mass,
 		Color:      color,
-		Elasticity: 1.0,
-		Friction:   1.0,
+		elasticity: 1.0,
+		friction:   1.0,
 	}
 }
+
+
 
 type Wall struct {
 	Vertex1 Vector2

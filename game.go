@@ -32,6 +32,10 @@ func NewGame(screenWidth int32, screenHeight int32, targetFPS int32) Game {
 	return game
 }
 
+func (game Game) Dt() float64{
+    return 1.0 / float64(game.targetFPS)
+}
+
 func (game *Game) SetUpdateCallback(callback func(*Game)) {
 	game.updateCallback = callback
 }
@@ -40,21 +44,33 @@ func (game *Game) SetDrawCallback(callback func(*Game)) {
 	game.drawCallback = callback
 }
 
+func (game *Game) SetGravity(v Vector2) {
+	if game.space != nil {
+		game.space.SetGravity(v.ToChipmunk())
+	}
+}
+
+func (game *Game) SetDamping(d float64) {
+	if game.space != nil {
+		game.space.SetDamping(d)
+	}
+}
+
 func (game *Game) Update() {
-	game.space.Step(1.0 / float64(game.targetFPS))
+	game.space.Step(game.Dt())
 
 	for _, ev := range game.entities {
 		switch entity := ev.(type) {
-        case *Particle:
-            if entity.updateCallback != nil {
-                entity.updateCallback(entity)        
-            }
-        case *Box:
-        case *Wall:
+		case *Particle:
+			if entity.updateCallback != nil {
+				entity.updateCallback(entity)
+			}
+		case *Box:
+		case *Wall:
 		default:
 			fmt.Println("Unknown entity type")
-        }
-    }
+		}
+	}
 }
 
 func (game Game) Draw() {
@@ -62,10 +78,10 @@ func (game Game) Draw() {
 	for _, v := range game.entities {
 		switch entity := v.(type) {
 		case *Particle:
-            entity.drawCallback(entity)
+			entity.drawCallback(entity)
 		case *Box:
-            angle := entity.cpBody.Angle() * 180.0 / math.Pi
-            pos := entity.cpBody.Position()
+			angle := entity.cpBody.Angle() * 180.0 / math.Pi
+			pos := entity.cpBody.Position()
 			boxRect := rl.NewRectangle(float32(pos.X), float32(pos.Y), float32(entity.Width), float32(entity.Height))
 			rl.DrawRectanglePro(boxRect, rl.NewVector2(boxRect.Width/2, boxRect.Height/2), float32(angle), entity.Color)
 		case *Wall:
@@ -107,28 +123,28 @@ func (game *Game) AddEntity(entity Entity) {
 
 	switch e := entity.(type) {
 	case *Particle:
-		body = game.space.AddBody(cp.NewBody(e.Mass, cp.MomentForCircle(e.Mass, 0.0, e.Radius, cp.Vector{})))
-        body.SetType(cp.BODY_DYNAMIC)
+		body = game.space.AddBody(cp.NewBody(e.mass, cp.MomentForCircle(e.mass, 0.0, e.radius, cp.Vector{})))
+		body.SetType(cp.BODY_DYNAMIC)
 		body.SetPosition(cp.Vector{X: e.position.X, Y: e.position.Y})
 		body.SetVelocity(e.velocity.X, e.velocity.Y)
-		shape = game.space.AddShape(cp.NewCircle(body, e.Radius, cp.Vector{}))
-		shape.SetElasticity(e.Elasticity)
-		shape.SetFriction(e.Friction)
+		shape = game.space.AddShape(cp.NewCircle(body, e.radius, cp.Vector{}))
+		shape.SetElasticity(e.elasticity)
+		shape.SetFriction(e.friction)
 
 		e.id = uint64(len(game.entities))
 		e.cpBody = body
-        e.cpShape = shape
+		e.cpShape = shape
 		game.entities = append(game.entities, e)
 	case *Box:
 		body = game.space.AddBody(cp.NewBody(e.Mass, cp.MomentForBox(e.Mass, e.Width, e.Height)))
-		body.SetPosition(cp.Vector{X: e.Position.X, Y: e.Position.Y})
+		body.SetPosition(cp.Vector{X: e.position.X, Y: e.position.Y})
 		shape = game.space.AddShape(cp.NewBox(body, e.Width, e.Height, 0))
-		shape.SetElasticity(e.Elasticity)
-		shape.SetFriction(e.Friction)
+		shape.SetElasticity(e.elasticity)
+		shape.SetFriction(e.friction)
 
 		e.id = uint64(len(game.entities))
 		e.cpBody = body
-        // e.cpShape = shape
+		e.cpShape = shape
 		game.entities = append(game.entities, e)
 	case *Wall:
 		body = cp.NewStaticBody()
@@ -138,7 +154,7 @@ func (game *Game) AddEntity(entity Entity) {
 
 		e.id = uint64(len(game.entities))
 		e.cpBody = body
-        // e.cpShape = shape
+		// e.cpShape = shape
 		game.entities = append(game.entities, e)
 	default:
 		fmt.Println("Unknown entity type")
