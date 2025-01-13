@@ -26,6 +26,14 @@ type Particle struct {
 	cpShape        *cp.Shape
 }
 
+func (p *Particle) SetUpdateCallback(callback func(*Particle)) {
+	p.updateCallback = callback
+}
+
+func (p *Particle) SetDrawCallback(callback func(*Particle)) {
+	p.drawCallback = callback
+}
+
 func (p Particle) Radius() float64 {
 	return p.radius
 }
@@ -79,14 +87,6 @@ func (p Particle) Angle() float64 {
 	return p.cpBody.Angle()
 }
 
-func (p *Particle) SetUpdateCallback(callback func(*Particle)) {
-	p.updateCallback = callback
-}
-
-func (p *Particle) SetDrawCallback(callback func(*Particle)) {
-	p.drawCallback = callback
-}
-
 func (p *Particle) Fix() {
 	if p.cpBody != nil {
 		p.SetVelocity(0, 0)
@@ -114,6 +114,10 @@ func (p Particle) Velocity() Vector2 {
 	} else {
 		return Vector2{X: p.Velocity().X, Y: p.Velocity().Y}
 	}
+}
+
+func (p *Particle) SetVelocityMax(v float64) {
+	p.velocityMax = v
 }
 
 func (p *Particle) SetVelocity(x float64, y float64) {
@@ -168,6 +172,10 @@ type Box struct {
 	id             uint64
 	cpBody         *cp.Body
 	cpShape        *cp.Shape
+}
+
+func (b *Box) SetVelocityMax(v float64) {
+	b.velocityMax = v
 }
 
 func (b *Box) SetElasticity(e float64) {
@@ -242,14 +250,14 @@ func (b *Box) SetKinematic() {
 
 func NewBox(position Vector2, width float64, height float64, mass float64, color rl.Color) Box {
 	return Box{
-		position:   position,
-		Width:      width,
-		Height:     height,
-		Mass:       mass,
-		Color:      color,
-		elasticity: 1.0,
-		friction:   1.0,
-        velocityMax: 800.0,
+		position:    position,
+		Width:       width,
+		Height:      height,
+		Mass:        mass,
+		Color:       color,
+		elasticity:  1.0,
+		friction:    1.0,
+		velocityMax: 800.0,
 	}
 }
 

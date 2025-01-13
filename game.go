@@ -34,12 +34,35 @@ func NewGame(screenWidth int32, screenHeight int32, targetFPS int32) Game {
 	return game
 }
 
+func (game *Game) SetWindowName(name string) {
+	game.windowName = name
+}
+
+func (game Game) NumEntities() int {
+	return len(game.entities)
+}
+
+func (game *Game) AddPerimiterWall(width float64, color rl.Color) {
+	v_tl := NewVector2(0, 0)
+	v_tr := NewVector2(float64(game.screenWidth), 0)
+	v_br := NewVector2(float64(game.screenWidth), float64(game.screenHeight))
+	v_bl := NewVector2(0, float64(game.screenHeight))
+	wallTop := NewWall(v_tl, v_tr, width, color)
+	wallRight := NewWall(v_tr, v_br, width, color)
+	wallBot := NewWall(v_bl, v_br, width, color)
+	wallLeft := NewWall(v_tl, v_bl, width, color)
+	game.AddEntity(&wallTop)
+	game.AddEntity(&wallRight)
+	game.AddEntity(&wallBot)
+	game.AddEntity(&wallLeft)
+}
+
 func (game Game) Dt() float64 {
 	return 1.0 / float64(game.targetFPS)
 }
 
 func (game *Game) SetBackgroundColor(color rl.Color) {
-    game.backgroundColor = color
+	game.backgroundColor = color
 }
 
 func (game *Game) SetUpdateCallback(callback func(*Game)) {
@@ -123,8 +146,9 @@ func (game *Game) Run() {
 	rl.CloseWindow()
 }
 
+// TODO: can these two functions be combined?
 func (p Particle) limitVelocity(body *cp.Body, gravity cp.Vector, damping float64, dt float64) {
-    maxSpeed := p.velocityMax // Maximum speed (pixels/second)
+	maxSpeed := p.velocityMax // Maximum speed (pixels/second)
 	cp.BodyUpdateVelocity(body, gravity, damping, dt)
 	velocity := body.Velocity()
 	speed := math.Sqrt(velocity.X*velocity.X + velocity.Y*velocity.Y)
@@ -135,7 +159,7 @@ func (p Particle) limitVelocity(body *cp.Body, gravity cp.Vector, damping float6
 }
 
 func (b Box) limitVelocity(body *cp.Body, gravity cp.Vector, damping float64, dt float64) {
-    maxSpeed := b.velocityMax // Maximum speed (pixels/second)
+	maxSpeed := b.velocityMax // Maximum speed (pixels/second)
 	cp.BodyUpdateVelocity(body, gravity, damping, dt)
 	velocity := body.Velocity()
 	speed := math.Sqrt(velocity.X*velocity.X + velocity.Y*velocity.Y)
@@ -159,7 +183,7 @@ func (game *Game) AddEntity(entity Entity) {
 		shape.SetElasticity(e.elasticity)
 		shape.SetFriction(e.friction)
 
-        body.SetVelocityUpdateFunc(e.limitVelocity)
+		body.SetVelocityUpdateFunc(e.limitVelocity)
 
 		e.id = uint64(len(game.entities))
 		e.cpBody = body
@@ -173,7 +197,7 @@ func (game *Game) AddEntity(entity Entity) {
 		shape.SetElasticity(e.elasticity)
 		shape.SetFriction(e.friction)
 
-        body.SetVelocityUpdateFunc(e.limitVelocity)
+		body.SetVelocityUpdateFunc(e.limitVelocity)
 
 		e.id = uint64(len(game.entities))
 		e.cpBody = body
