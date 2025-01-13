@@ -141,13 +141,13 @@ func DefaultParticleDrawFunc(p *Particle) {
 
 func NewParticle(position Vector2, radius float64, mass float64, color rl.Color) Particle {
 	pOut := Particle{
-		position:   position,
-		radius:     radius,
-		mass:       mass,
-		color:      color,
-		elasticity: 1.0,
-		friction:   1.0,
-        velocityMax: 800.0,
+		position:    position,
+		radius:      radius,
+		mass:        mass,
+		color:       color,
+		elasticity:  1.0,
+		friction:    1.0,
+		velocityMax: 800.0,
 	}
 	pOut.SetDrawCallback(DefaultParticleDrawFunc)
 	return pOut
@@ -156,6 +156,7 @@ func NewParticle(position Vector2, radius float64, mass float64, color rl.Color)
 type Box struct {
 	position       Vector2
 	velocity       Vector2
+	velocityMax    float64
 	Width          float64
 	Height         float64
 	Mass           float64
@@ -248,6 +249,7 @@ func NewBox(position Vector2, width float64, height float64, mass float64, color
 		Color:      color,
 		elasticity: 1.0,
 		friction:   1.0,
+        velocityMax: 800.0,
 	}
 }
 

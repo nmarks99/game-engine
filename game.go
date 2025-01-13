@@ -122,9 +122,20 @@ func (game *Game) Run() {
 
 	rl.CloseWindow()
 }
-// Limit velocity to the specified max speed
+
 func (p Particle) limitVelocity(body *cp.Body, gravity cp.Vector, damping float64, dt float64) {
     maxSpeed := p.velocityMax // Maximum speed (pixels/second)
+	cp.BodyUpdateVelocity(body, gravity, damping, dt)
+	velocity := body.Velocity()
+	speed := math.Sqrt(velocity.X*velocity.X + velocity.Y*velocity.Y)
+	if speed > maxSpeed {
+		scale := maxSpeed / speed
+		body.SetVelocity(velocity.X*scale, velocity.Y*scale)
+	}
+}
+
+func (b Box) limitVelocity(body *cp.Body, gravity cp.Vector, damping float64, dt float64) {
+    maxSpeed := b.velocityMax // Maximum speed (pixels/second)
 	cp.BodyUpdateVelocity(body, gravity, damping, dt)
 	velocity := body.Velocity()
 	speed := math.Sqrt(velocity.X*velocity.X + velocity.Y*velocity.Y)
@@ -161,6 +172,8 @@ func (game *Game) AddEntity(entity Entity) {
 		shape = game.space.AddShape(cp.NewBox(body, e.Width, e.Height, 0))
 		shape.SetElasticity(e.elasticity)
 		shape.SetFriction(e.friction)
+
+        body.SetVelocityUpdateFunc(e.limitVelocity)
 
 		e.id = uint64(len(game.entities))
 		e.cpBody = body
