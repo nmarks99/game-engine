@@ -21,31 +21,27 @@ func main() {
 	// Create a permiter wall (invisible)
 	game.AddPerimiterWall(5, rl.NewColor(0, 0, 0, 0))
 
-	ballTexture := rl.LoadTexture("./assets/planets/Terran.png")
+	// Cursor texture, hide default cursor
+	cursorTexture := rl.LoadTexture("./assets/cursors/Tiles/tile_0026.png")
+	rl.HideCursor()
 
-	// add custom draw function for ball to draw line for angle
+	// add custom draw function for ball to add texture to it
 	ball_draw_cbk := func(p *Particle) {
-
+        // TODO: create Particle.AddTexture method to do this:
 		pos := p.Position()
-
+	    ballTexture := rl.LoadTexture("./assets/planets/Terran.png")
 		ballTextureW := float32(ballTexture.Width)
 		ballTextureH := float32(ballTexture.Height)
 		srcRect := rl.NewRectangle(0, 0, ballTextureW, ballTextureH)
 		destRect := rl.NewRectangle(float32(pos.X), float32(pos.Y), ballTextureW, ballTextureH)
 		origin := rl.NewVector2(ballTextureW/2, ballTextureH/2)
-
 		angle := float32(p.Angle() * 180.0 / math.Pi)
 		rl.DrawTexturePro(ballTexture, srcRect, destRect, origin, float32(angle), rl.White)
 	}
 
-	// Cursor texture, hide default cursor
-	cursor := rl.LoadTexture("./assets/cursors/Tiles/tile_0026.png")
-	rl.HideCursor()
-
 	var mousePos rl.Vector2
 	var mouseVel rl.Vector2
 	var numEntities int
-
 	game.SetUpdateCallback(func(game *Game) {
 		mousePos = rl.GetMousePosition()
 		mouseVel = rl.Vector2Scale(rl.GetMouseDelta(), 50.0)
@@ -70,7 +66,7 @@ func main() {
 	})
 
 	game.SetDrawCallback(func(game *Game) {
-		rl.DrawTextureV(cursor, mousePos, rl.White)
+        rl.DrawTextureEx(cursorTexture, mousePos, 0.0, 2.0, rl.White)
 		rl.DrawText(fmt.Sprintf("Entities: %d\n", numEntities-4), 10, 10, 20, rl.Black)
 	})
 
