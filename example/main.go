@@ -46,12 +46,12 @@ func main() {
 	game.SetUpdateCallback(func(game *Game) {
 		mousePos = rl.GetMousePosition()
 		mouseVel = rl.Vector2Scale(rl.GetMouseDelta(), 50.0)
-		numEntities = game.NumEntities()
+		numEntities = game.EntitiesCount()
 
 		// lift click adds a ball
 		if rl.IsMouseButtonReleased(rl.MouseButtonLeft) {
 			const ballRadius float64 = 20.0
-			new_ball := NewParticle(NewVector2(float64(mousePos.X), float64(mousePos.Y)), ballRadius, 1.0, rl.DarkGreen)
+			new_ball := NewParticle(Vector2FromRaylib(mousePos), ballRadius, 1.0, rl.DarkGreen)
 			new_ball.SetDrawCallback(ball_draw_cbk)
 			new_ball.SetVelocity(float64(mouseVel.X), float64(mouseVel.Y))
 			game.AddEntity(&new_ball)
@@ -60,7 +60,7 @@ func main() {
 		// right click adds a block
 		if rl.IsMouseButtonReleased(rl.MouseButtonRight) {
 			const boxWidth float64 = 50.0
-			new_box := NewBox(NewVector2(float64(mousePos.X), float64(mousePos.Y)), boxWidth, boxWidth, 1.0, rl.NewColor(39, 81, 130, 255))
+			new_box := NewBox(Vector2FromRaylib(mousePos), boxWidth, boxWidth, 1.0, rl.NewColor(39, 81, 130, 255))
 			new_box.SetVelocity(float64(mouseVel.X), float64(mouseVel.Y))
 			game.AddEntity(&new_box)
 		}

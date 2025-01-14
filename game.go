@@ -38,7 +38,7 @@ func (game *Game) SetWindowName(name string) {
 	game.windowName = name
 }
 
-func (game Game) NumEntities() int {
+func (game Game) EntitiesCount() int {
 	return len(game.entities)
 }
 
@@ -234,4 +234,8 @@ func (v Vector2) ToRaylib() rl.Vector2 {
 
 func (v Vector2) ToChipmunk() cp.Vector {
 	return cp.Vector{X: float64(v.X), Y: float64(v.Y)}
+}
+
+func Vector2FromRaylib(v rl.Vector2) Vector2 {
+    return NewVector2(float64(v.X), float64(v.Y))
 }
