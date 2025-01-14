@@ -25,11 +25,12 @@ func main() {
 	cursorTexture := rl.LoadTexture("./assets/cursors/Tiles/tile_0026.png")
 	rl.HideCursor()
 
+	ballTexture := rl.LoadTexture("./assets/planets/Terran.png")
+
 	// add custom draw function for ball to add texture to it
 	ball_draw_cbk := func(p *Particle) {
         // TODO: create Particle.AddTexture method to do this:
 		pos := p.Position()
-	    ballTexture := rl.LoadTexture("./assets/planets/Terran.png")
 		ballTextureW := float32(ballTexture.Width)
 		ballTextureH := float32(ballTexture.Height)
 		srcRect := rl.NewRectangle(0, 0, ballTextureW, ballTextureH)
