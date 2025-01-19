@@ -7,7 +7,10 @@ import (
 	"github.com/jakecoffman/cp/v2"
 )
 
-type Entity interface{}
+type Entity interface{
+    Update()
+    Draw()
+}
 
 type Circle struct {
 	position       Vector2
@@ -52,6 +55,18 @@ func NewCircle(position Vector2, radius float64, color rl.Color) Circle {
 	}
 	pOut.SetDrawCallback(DefaultCircleDrawFunc)
 	return pOut
+}
+
+func (c *Circle) Update() {
+    if c.updateCallback != nil {
+        c.updateCallback(c)
+    }
+}
+
+func (c *Circle) Draw() {
+    if c.drawCallback != nil {
+        c.drawCallback(c)
+    }
 }
 
 func (p Circle) IsPhysical() bool {
@@ -236,6 +251,18 @@ func (b *Box) SetDrawCallback(callback func(*Box)) {
 	b.drawCallback = callback
 }
 
+func (b *Box) Update() {
+    if b.updateCallback != nil {
+        b.updateCallback(b)
+    }
+}
+
+func (b *Box) Draw() {
+    if b.drawCallback != nil {
+        b.drawCallback(b)
+    }
+}
+
 // func (b *Box) SetOnClick(callback func(*Box)) {
 // }
 
@@ -340,4 +367,11 @@ func NewWall(vertex1 Vector2, vertex2 Vector2, width float64, color rl.Color) Wa
 		Color:   color,
 		Visible: true,
 	}
+}
+
+func (w *Wall) Update() {}
+func (w *Wall) Draw() {
+    if w.Visible {
+        rl.DrawLineEx(w.Vertex1.ToRaylib(), w.Vertex2.ToRaylib(), float32(w.Width), w.Color)
+    }
 }

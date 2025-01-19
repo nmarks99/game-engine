@@ -1,10 +1,10 @@
 package main
 
 import (
-	. "raychip"
 	"fmt"
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"math"
+	. "raychip"
 )
 
 func main() {
@@ -18,8 +18,8 @@ func main() {
 	game := NewGame(SCREEN_WIDTH, SCREEN_HEIGHT, TARGET_FPS)
 	game.SetDamping(0.9)
 
-	// Create a permiter wall (invisible)
-	game.AddPerimiterWall(5, rl.NewColor(0, 0, 0, 0))
+    // Create a permiter wall (invisible)
+    game.AddPerimiterWall(5, rl.NewColor(0, 0, 0, 0))
 
 	// Cursor texture, hide default cursor
 	cursorTexture := rl.LoadTexture("./assets/cursors/Tiles/tile_0026.png")
@@ -29,7 +29,7 @@ func main() {
 
 	// add custom draw function for ball to add texture to it
 	ball_draw_cbk := func(p *Circle) {
-        // TODO: create Circle.AddTexture method to do this:
+		// TODO: create Circle.AddTexture method to do this:
 		pos := p.Position()
 		ballTextureW := float32(ballTexture.Width)
 		ballTextureH := float32(ballTexture.Height)
@@ -65,19 +65,19 @@ func main() {
 			game.AddEntity(&new_box)
 		}
 
-        // scroll wheel click adds a non physical circle
-        if rl.IsMouseButtonReleased(rl.MouseButtonMiddle) {
-            const boxWidth float64 = 50.0
-            new_box := NewBox(Vector2FromRaylib(mousePos), boxWidth, boxWidth, rl.Red)
-            game.AddEntity(&new_box)
-            // const ballRadius float64 = 20.0
-            // new_ball := NewCircle(Vector2FromRaylib(mousePos), ballRadius, rl.Red)
-            // game.AddEntity(&new_ball)
-        }
+		// scroll wheel click adds a non physical circle
+		if rl.IsMouseButtonReleased(rl.MouseButtonMiddle) {
+			const boxWidth float64 = 50.0
+			new_box := NewBox(Vector2FromRaylib(mousePos), boxWidth, boxWidth, rl.Red)
+			game.AddEntity(&new_box)
+			// const ballRadius float64 = 20.0
+			// new_ball := NewCircle(Vector2FromRaylib(mousePos), ballRadius, rl.Red)
+			// game.AddEntity(&new_ball)
+		}
 	})
 
 	game.SetDrawCallback(func(game *Game) {
-        rl.DrawTextureEx(cursorTexture, mousePos, 0.0, 2.0, rl.White)
+		rl.DrawTextureEx(cursorTexture, mousePos, 0.0, 2.0, rl.White)
 		rl.DrawText(fmt.Sprintf("Entities: %d\n", numEntities-4), 10, 10, 20, rl.Black)
 	})
 

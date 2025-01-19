@@ -87,51 +87,25 @@ func (game *Game) SetDamping(d float64) {
 
 func (game *Game) Update() {
 	game.space.Step(game.Dt())
-
-	for _, ev := range game.entities {
-		switch entity := ev.(type) {
-		case *Circle:
-			if entity.updateCallback != nil {
-				entity.updateCallback(entity)
-			}
-		case *Box:
-			if entity.updateCallback != nil {
-				entity.updateCallback(entity)
-			}
-		case *Wall:
-		default:
-			fmt.Println("Unknown entity type")
-		}
+	for _, entity := range game.entities {
+        entity.Update()
 	}
 }
 
 func (game Game) Draw() {
-
-	for _, v := range game.entities {
-		switch entity := v.(type) {
-		case *Circle:
-			entity.drawCallback(entity)
-		case *Box:
-			entity.drawCallback(entity)
-			// angle := entity.cpBody.Angle() * 180.0 / math.Pi
-			// pos := entity.cpBody.Position()
-			// boxRect := rl.NewRectangle(float32(pos.X), float32(pos.Y), float32(entity.Width), float32(entity.Height))
-			// rl.DrawRectanglePro(boxRect, rl.NewVector2(boxRect.Width/2, boxRect.Height/2), float32(angle), entity.Color)
-		case *Wall:
-			if entity.Visible {
-				rl.DrawLineEx(entity.Vertex1.ToRaylib(), entity.Vertex2.ToRaylib(), float32(entity.Width), entity.Color)
-			}
-		default:
-			fmt.Println("Unknown entity type")
-		}
+	for _, entity := range game.entities {
+        entity.Draw()
 	}
-
 }
 
 func (game *Game) Run() {
 
 	for !rl.WindowShouldClose() {
-		game.Update()
+
+        // call default game.Update()
+		game.Update() 
+
+        // Call custom game.Update() if defined
 		if game.updateCallback != nil {
 			game.updateCallback(game)
 		}
@@ -139,7 +113,11 @@ func (game *Game) Run() {
 		// ---------- Drawing ----------
 		rl.BeginDrawing()
 		rl.ClearBackground(game.backgroundColor)
+
+        // call default game.Draw()
 		game.Draw()
+
+        // call custom game.Draw() if defined
 		if game.drawCallback != nil {
 			game.drawCallback(game)
 		}
@@ -173,6 +151,7 @@ func (b Box) limitVelocity(body *cp.Body, gravity cp.Vector, damping float64, dt
 	}
 }
 
+// TODO: create AddEntity function for each entity similar to draw and update callbacks?
 func (game *Game) AddEntity(entity Entity) {
 	var body *cp.Body
 	var shape *cp.Shape
