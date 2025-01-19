@@ -1,181 +1,260 @@
-package engine
+package raychip
 
 import (
 	"math"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"github.com/jakecoffman/cp/v2"
-	// "fmt"
 )
 
 type Entity interface{}
 
-type Particle struct {
+type Circle struct {
 	position       Vector2
+	angle          float64
 	velocity       Vector2
 	velocityMax    float64
 	radius         float64
+	color          rl.Color
+	updateCallback func(*Circle)
+	drawCallback   func(*Circle)
+	id             uint64
+	physical       bool
 	mass           float64
 	elasticity     float64
 	friction       float64
-	color          rl.Color
-	updateCallback func(*Particle)
-	drawCallback   func(*Particle)
-	id             uint64
 	cpBody         *cp.Body
 	cpShape        *cp.Shape
 }
 
-func (p *Particle) SetUpdateCallback(callback func(*Particle)) {
+func NewPhysicalCircle(position Vector2, radius float64, mass float64, color rl.Color) Circle {
+	pOut := Circle{
+		position:    position,
+		radius:      radius,
+		mass:        mass,
+		color:       color,
+		physical:    true,
+		elasticity:  1.0,
+		friction:    1.0,
+		velocityMax: 800.0,
+	}
+	pOut.SetDrawCallback(DefaultCircleDrawFunc)
+	return pOut
+}
+
+func NewCircle(position Vector2, radius float64, color rl.Color) Circle {
+	pOut := Circle{
+		position:    position,
+		radius:      radius,
+		color:       color,
+		physical:    false,
+		velocityMax: 800.0,
+	}
+	pOut.SetDrawCallback(DefaultCircleDrawFunc)
+	return pOut
+}
+
+func (p Circle) IsPhysical() bool {
+	return p.physical
+}
+
+func DefaultCircleDrawFunc(p *Circle) {
+	pos := p.Position()
+	rl.DrawCircle(int32(pos.X), int32(pos.Y), float32(p.radius), p.color)
+}
+
+func (p *Circle) SetUpdateCallback(callback func(*Circle)) {
 	p.updateCallback = callback
 }
 
-func (p *Particle) SetDrawCallback(callback func(*Particle)) {
+func (p *Circle) SetDrawCallback(callback func(*Circle)) {
 	p.drawCallback = callback
 }
 
-func (p Particle) Radius() float64 {
+func (p *Circle) Radius() float64 {
 	return p.radius
 }
 
-func (p *Particle) SetMass(m float64) {
+func (p *Circle) SetMass(m float64) {
 	p.mass = m
 	if p.cpBody != nil {
 		p.cpBody.SetMass(m)
 	}
 }
 
-func (p Particle) Mass() float64 {
+func (p *Circle) Mass() float64 {
 	if p.cpBody != nil {
-		return p.cpBody.Mass()
-	} else {
-		return p.mass
+		p.mass = p.cpBody.Mass()
 	}
+	return p.mass
 }
 
-func (p *Particle) SetElasticity(e float64) {
+func (p *Circle) SetElasticity(e float64) {
 	p.elasticity = e
 	if p.cpShape != nil {
 		p.cpShape.SetElasticity(e)
 	}
 }
 
-func (p Particle) Elasticity() float64 {
+func (p *Circle) Elasticity() float64 {
 	if p.cpShape != nil {
-		return p.cpShape.Elasticity()
-	} else {
-		return p.elasticity
+		p.elasticity = p.cpShape.Elasticity()
 	}
+	return p.elasticity
 }
 
-func (p *Particle) SetFriction(f float64) {
+func (p *Circle) SetFriction(f float64) {
 	p.friction = f
 	if p.cpShape != nil {
 		p.cpShape.SetFriction(f)
 	}
 }
 
-func (p Particle) Friction() float64 {
+func (p *Circle) Friction() float64 {
 	if p.cpShape != nil {
-		return p.cpShape.Friction()
-	} else {
-		return p.friction
+		p.friction = p.cpShape.Friction()
 	}
+	return p.friction
 }
 
-func (p Particle) Angle() float64 {
-	return p.cpBody.Angle()
+func (p *Circle) Angle() float64 {
+	if p.cpBody != nil {
+		p.angle = p.cpBody.Angle()
+	}
+	return p.angle
 }
 
-func (p *Particle) Fix() {
+func (p *Circle) Fix() {
 	if p.cpBody != nil {
 		p.SetVelocity(0, 0)
 		p.cpBody.SetMass(math.Inf(1))
 	}
 }
 
-func (p *Particle) Unfix() {
+func (p *Circle) Unfix() {
 	if p.cpBody != nil {
 		p.cpBody.SetMass(p.mass)
 	}
 }
 
-func (p Particle) Position() Vector2 {
+func (p *Circle) Position() Vector2 {
 	if p.cpBody != nil {
-		return Vector2{X: p.cpBody.Position().X, Y: p.cpBody.Position().Y}
-	} else {
-		return Vector2{X: p.Position().X, Y: p.Position().Y}
+		p.position = Vector2(p.cpBody.Position())
 	}
+	return p.position
 }
 
-func (p Particle) Velocity() Vector2 {
+func (p *Circle) Velocity() Vector2 {
 	if p.cpBody != nil {
-		return Vector2{X: p.cpBody.Velocity().X, Y: p.cpBody.Velocity().Y}
-	} else {
-		return Vector2{X: p.Velocity().X, Y: p.Velocity().Y}
+		p.velocity = Vector2(p.cpBody.Velocity())
 	}
+	return p.velocity
 }
 
-func (p *Particle) SetVelocityMax(v float64) {
+func (p *Circle) SetVelocityMax(v float64) {
 	p.velocityMax = v
 }
 
-func (p *Particle) SetVelocity(x float64, y float64) {
+func (p *Circle) SetVelocity(x float64, y float64) {
 	p.velocity.X = x
 	p.velocity.Y = y
-
 	if p.cpBody != nil {
 		p.cpBody.SetVelocity(x, y)
 	}
 }
 
-func (p *Particle) SetPosition(x float64, y float64) {
+func (p *Circle) SetPosition(x float64, y float64) {
 	p.position.X = x
 	p.position.Y = y
-
 	if p.cpBody != nil {
 		p.cpBody.SetPosition(p.Position().ToChipmunk())
 	}
 }
 
-func DefaultParticleDrawFunc(p *Particle) {
-	pos := p.Position()
-	rl.DrawCircle(int32(pos.X), int32(pos.Y), float32(p.radius), p.color)
-}
-
-func NewParticle(position Vector2, radius float64, mass float64, color rl.Color) Particle {
-	pOut := Particle{
-		position:    position,
-		radius:      radius,
-		mass:        mass,
-		color:       color,
-		elasticity:  1.0,
-		friction:    1.0,
-		velocityMax: 800.0,
-	}
-	pOut.SetDrawCallback(DefaultParticleDrawFunc)
-	return pOut
-}
-
 type Box struct {
 	position       Vector2
+	angle          float64
 	velocity       Vector2
 	velocityMax    float64
-	Width          float64
-	Height         float64
-	Mass           float64
+	width          float64
+	height         float64
+	color          rl.Color
+	updateCallback func(*Box)
+	drawCallback   func(*Box)
+	id             uint64
+	physical       bool
+	mass           float64
 	elasticity     float64
 	friction       float64
-	Color          rl.Color
-	updateCallback func(*Particle)
-	drawCallback   func(*Particle)
-	id             uint64
 	cpBody         *cp.Body
 	cpShape        *cp.Shape
 }
 
+func NewPhysicalBox(position Vector2, width float64, height float64, mass float64, color rl.Color) Box {
+    bOut := Box{
+		position:    position,
+		width:       width,
+		height:      height,
+		mass:        mass,
+		color:       color,
+		physical:    true,
+		elasticity:  1.0,
+		friction:    1.0,
+		velocityMax: 800.0,
+	}
+    bOut.SetDrawCallback(DefaultBoxDrawFunc)
+    return bOut
+}
+
+func NewBox(position Vector2, width float64, height float64, color rl.Color) Box {
+    bOut := Box{
+		position:    position,
+		width:       width,
+		height:      height,
+		color:       color,
+		physical:    false,
+		elasticity:  1.0,
+		friction:    1.0,
+		velocityMax: 800.0,
+	}
+    bOut.SetDrawCallback(DefaultBoxDrawFunc)
+    return bOut
+}
+
+func DefaultBoxDrawFunc(b *Box) {
+    angle := b.Angle() * 180.0 / math.Pi
+    pos := b.Position()
+    boxRect := rl.NewRectangle(float32(pos.X), float32(pos.Y), float32(b.width), float32(b.height))
+    rl.DrawRectanglePro(boxRect, rl.NewVector2(boxRect.Width/2, boxRect.Height/2), float32(angle), b.color)
+}
+
+func (b *Box) SetUpdateCallback(callback func(*Box)) {
+	b.updateCallback = callback
+}
+
+func (b *Box) SetDrawCallback(callback func(*Box)) {
+	b.drawCallback = callback
+}
+
+// func (b *Box) SetOnClick(callback func(*Box)) {
+// }
+
 func (b *Box) SetVelocityMax(v float64) {
 	b.velocityMax = v
+}
+
+func (b *Box) SetMass(m float64) {
+	b.mass = m
+	if b.cpBody != nil {
+		b.cpBody.SetMass(m)
+	}
+}
+
+func (b *Box) Mass() float64 {
+	if b.cpBody != nil {
+		b.mass = b.cpBody.Mass()
+	}
+	return b.mass
 }
 
 func (b *Box) SetElasticity(e float64) {
@@ -185,12 +264,11 @@ func (b *Box) SetElasticity(e float64) {
 	}
 }
 
-func (b Box) Elasticity() float64 {
+func (b *Box) Elasticity() float64 {
 	if b.cpShape != nil {
-		return b.cpShape.Elasticity()
-	} else {
-		return b.elasticity
+		b.elasticity = b.cpShape.Elasticity()
 	}
+	return b.elasticity
 }
 
 func (b *Box) SetFriction(f float64) {
@@ -200,64 +278,47 @@ func (b *Box) SetFriction(f float64) {
 	}
 }
 
-func (b Box) Friction() float64 {
+func (b *Box) Friction() float64 {
 	if b.cpShape != nil {
-		return b.cpShape.Friction()
-	} else {
-		return b.friction
+		b.friction = b.cpShape.Friction()
 	}
+	return b.friction
 }
 
-func (b Box) Velocity() Vector2 {
+func (b *Box) Velocity() Vector2 {
 	if b.cpBody != nil {
-		return NewVector2(b.cpBody.Velocity().X, b.cpBody.Velocity().Y)
-	} else {
-		return b.velocity
+		b.velocity = Vector2(b.cpBody.Velocity())
 	}
+	return b.velocity
 }
 
 func (b *Box) SetVelocity(x float64, y float64) {
 	b.velocity.X = x
 	b.velocity.Y = y
-
 	if b.cpBody != nil {
 		b.cpBody.SetVelocity(x, y)
 	}
 }
 
-func (b Box) Position() Vector2 {
+func (b *Box) Angle() float64 {
 	if b.cpBody != nil {
-		return NewVector2(b.cpBody.Position().X, b.cpBody.Position().Y)
-	} else {
-		return b.position
+		b.angle = b.cpBody.Angle()
 	}
+	return b.angle
+}
+
+func (b *Box) Position() Vector2 {
+	if b.cpBody != nil {
+		b.position = Vector2(b.cpBody.Position())
+	}
+	return b.position
 }
 
 func (b *Box) SetPosition(x float64, y float64) {
 	b.position.X = x
 	b.position.Y = y
-
 	if b.cpBody != nil {
 		b.cpBody.SetPosition(cp.Vector{X: x, Y: y})
-	}
-}
-
-func (b *Box) SetKinematic() {
-	if b.cpBody != nil {
-		b.cpBody.SetType(cp.BODY_KINEMATIC)
-	}
-}
-
-func NewBox(position Vector2, width float64, height float64, mass float64, color rl.Color) Box {
-	return Box{
-		position:    position,
-		Width:       width,
-		Height:      height,
-		Mass:        mass,
-		Color:       color,
-		elasticity:  1.0,
-		friction:    1.0,
-		velocityMax: 800.0,
 	}
 }
 

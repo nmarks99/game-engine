@@ -1,4 +1,4 @@
-package engine
+package raychip
 
 import (
 	"fmt"
@@ -90,11 +90,14 @@ func (game *Game) Update() {
 
 	for _, ev := range game.entities {
 		switch entity := ev.(type) {
-		case *Particle:
+		case *Circle:
 			if entity.updateCallback != nil {
 				entity.updateCallback(entity)
 			}
 		case *Box:
+			if entity.updateCallback != nil {
+				entity.updateCallback(entity)
+			}
 		case *Wall:
 		default:
 			fmt.Println("Unknown entity type")
@@ -106,13 +109,14 @@ func (game Game) Draw() {
 
 	for _, v := range game.entities {
 		switch entity := v.(type) {
-		case *Particle:
+		case *Circle:
 			entity.drawCallback(entity)
 		case *Box:
-			angle := entity.cpBody.Angle() * 180.0 / math.Pi
-			pos := entity.cpBody.Position()
-			boxRect := rl.NewRectangle(float32(pos.X), float32(pos.Y), float32(entity.Width), float32(entity.Height))
-			rl.DrawRectanglePro(boxRect, rl.NewVector2(boxRect.Width/2, boxRect.Height/2), float32(angle), entity.Color)
+			entity.drawCallback(entity)
+			// angle := entity.cpBody.Angle() * 180.0 / math.Pi
+			// pos := entity.cpBody.Position()
+			// boxRect := rl.NewRectangle(float32(pos.X), float32(pos.Y), float32(entity.Width), float32(entity.Height))
+			// rl.DrawRectanglePro(boxRect, rl.NewVector2(boxRect.Width/2, boxRect.Height/2), float32(angle), entity.Color)
 		case *Wall:
 			if entity.Visible {
 				rl.DrawLineEx(entity.Vertex1.ToRaylib(), entity.Vertex2.ToRaylib(), float32(entity.Width), entity.Color)
@@ -147,7 +151,7 @@ func (game *Game) Run() {
 }
 
 // TODO: can these two functions be combined?
-func (p Particle) limitVelocity(body *cp.Body, gravity cp.Vector, damping float64, dt float64) {
+func (p Circle) limitVelocity(body *cp.Body, gravity cp.Vector, damping float64, dt float64) {
 	maxSpeed := p.velocityMax // Maximum speed (pixels/second)
 	cp.BodyUpdateVelocity(body, gravity, damping, dt)
 	velocity := body.Velocity()
@@ -174,34 +178,34 @@ func (game *Game) AddEntity(entity Entity) {
 	var shape *cp.Shape
 
 	switch e := entity.(type) {
-	case *Particle:
-		body = game.space.AddBody(cp.NewBody(e.mass, cp.MomentForCircle(e.mass, 0.0, e.radius, cp.Vector{})))
-		body.SetType(cp.BODY_DYNAMIC)
-		body.SetPosition(cp.Vector{X: e.position.X, Y: e.position.Y})
-		body.SetVelocity(e.velocity.X, e.velocity.Y)
-		shape = game.space.AddShape(cp.NewCircle(body, e.radius, cp.Vector{}))
-		shape.SetElasticity(e.elasticity)
-		shape.SetFriction(e.friction)
-
-		body.SetVelocityUpdateFunc(e.limitVelocity)
-
+	case *Circle:
+        if e.physical {
+            body = game.space.AddBody(cp.NewBody(e.mass, cp.MomentForCircle(e.mass, 0.0, e.radius, cp.Vector{})))
+            body.SetType(cp.BODY_DYNAMIC)
+            body.SetPosition(cp.Vector{X: e.position.X, Y: e.position.Y})
+            body.SetVelocity(e.velocity.X, e.velocity.Y)
+            shape = game.space.AddShape(cp.NewCircle(body, e.radius, cp.Vector{}))
+            shape.SetElasticity(e.elasticity)
+            shape.SetFriction(e.friction)
+            body.SetVelocityUpdateFunc(e.limitVelocity)
+            e.cpBody = body
+            e.cpShape = shape
+        }
 		e.id = uint64(len(game.entities))
-		e.cpBody = body
-		e.cpShape = shape
 		game.entities = append(game.entities, e)
 	case *Box:
-		body = game.space.AddBody(cp.NewBody(e.Mass, cp.MomentForBox(e.Mass, e.Width, e.Height)))
-		body.SetPosition(cp.Vector{X: e.position.X, Y: e.position.Y})
-		body.SetVelocity(e.velocity.X, e.velocity.Y)
-		shape = game.space.AddShape(cp.NewBox(body, e.Width, e.Height, 0))
-		shape.SetElasticity(e.elasticity)
-		shape.SetFriction(e.friction)
-
-		body.SetVelocityUpdateFunc(e.limitVelocity)
-
+        if e.physical {
+            body = game.space.AddBody(cp.NewBody(e.mass, cp.MomentForBox(e.mass, e.width, e.height)))
+            body.SetPosition(cp.Vector{X: e.position.X, Y: e.position.Y})
+            body.SetVelocity(e.velocity.X, e.velocity.Y)
+            shape = game.space.AddShape(cp.NewBox(body, e.width, e.height, 0))
+            shape.SetElasticity(e.elasticity)
+            shape.SetFriction(e.friction)
+            body.SetVelocityUpdateFunc(e.limitVelocity)
+            e.cpBody = body
+            e.cpShape = shape
+        }
 		e.id = uint64(len(game.entities))
-		e.cpBody = body
-		e.cpShape = shape
 		game.entities = append(game.entities, e)
 	case *Wall:
 		body = cp.NewStaticBody()
@@ -217,25 +221,4 @@ func (game *Game) AddEntity(entity Entity) {
 		fmt.Println("Unknown entity type")
 		return
 	}
-}
-
-type Vector2 struct {
-	X float64
-	Y float64
-}
-
-func NewVector2(x float64, y float64) Vector2 {
-	return Vector2{X: x, Y: y}
-}
-
-func (v Vector2) ToRaylib() rl.Vector2 {
-	return rl.NewVector2(float32(v.X), float32(v.Y))
-}
-
-func (v Vector2) ToChipmunk() cp.Vector {
-	return cp.Vector{X: float64(v.X), Y: float64(v.Y)}
-}
-
-func Vector2FromRaylib(v rl.Vector2) Vector2 {
-    return NewVector2(float64(v.X), float64(v.Y))
 }

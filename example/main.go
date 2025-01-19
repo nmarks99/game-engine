@@ -1,7 +1,7 @@
 package main
 
 import (
-	. "engine"
+	. "raychip"
 	"fmt"
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"math"
@@ -28,8 +28,8 @@ func main() {
 	ballTexture := rl.LoadTexture("./assets/planets/Terran.png")
 
 	// add custom draw function for ball to add texture to it
-	ball_draw_cbk := func(p *Particle) {
-        // TODO: create Particle.AddTexture method to do this:
+	ball_draw_cbk := func(p *Circle) {
+        // TODO: create Circle.AddTexture method to do this:
 		pos := p.Position()
 		ballTextureW := float32(ballTexture.Width)
 		ballTextureH := float32(ballTexture.Height)
@@ -51,7 +51,7 @@ func main() {
 		// lift click adds a ball
 		if rl.IsMouseButtonReleased(rl.MouseButtonLeft) {
 			const ballRadius float64 = 20.0
-			new_ball := NewParticle(Vector2FromRaylib(mousePos), ballRadius, 1.0, rl.DarkGreen)
+			new_ball := NewPhysicalCircle(Vector2FromRaylib(mousePos), ballRadius, 1.0, rl.DarkGreen)
 			new_ball.SetDrawCallback(ball_draw_cbk)
 			new_ball.SetVelocity(float64(mouseVel.X), float64(mouseVel.Y))
 			game.AddEntity(&new_ball)
@@ -60,10 +60,20 @@ func main() {
 		// right click adds a block
 		if rl.IsMouseButtonReleased(rl.MouseButtonRight) {
 			const boxWidth float64 = 50.0
-			new_box := NewBox(Vector2FromRaylib(mousePos), boxWidth, boxWidth, 1.0, rl.NewColor(39, 81, 130, 255))
+			new_box := NewPhysicalBox(Vector2FromRaylib(mousePos), boxWidth, boxWidth, 1.0, rl.NewColor(39, 81, 130, 255))
 			new_box.SetVelocity(float64(mouseVel.X), float64(mouseVel.Y))
 			game.AddEntity(&new_box)
 		}
+
+        // scroll wheel click adds a non physical circle
+        if rl.IsMouseButtonReleased(rl.MouseButtonMiddle) {
+            const boxWidth float64 = 50.0
+            new_box := NewBox(Vector2FromRaylib(mousePos), boxWidth, boxWidth, rl.Red)
+            game.AddEntity(&new_box)
+            // const ballRadius float64 = 20.0
+            // new_ball := NewCircle(Vector2FromRaylib(mousePos), ballRadius, rl.Red)
+            // game.AddEntity(&new_ball)
+        }
 	})
 
 	game.SetDrawCallback(func(game *Game) {

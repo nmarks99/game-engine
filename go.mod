@@ -1,4 +1,4 @@
-module engine
+module raychip
 
 go 1.23.3
 
