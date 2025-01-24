@@ -93,8 +93,6 @@ func defaultCircleDrawFunc(p *Circle) {
 
 func (c Circle) DefaultDraw() {
 	defaultCircleDrawFunc(&c)
-	// pos := c.Position()
-	// rl.DrawCircle(int32(pos.X), int32(pos.Y), float32(c.radius), c.color)
 }
 
 func (c *Circle) Update() {
@@ -114,6 +112,41 @@ func (p *Circle) SetUpdateCallback(callback func(*Circle)) {
 
 func (p *Circle) SetDrawCallback(callback func(*Circle)) {
 	p.drawCallback = callback
+}
+
+// Add Texture
+// ballTexture := rl.LoadTexture("./assets/planets/Terran.png")
+//
+// // add custom draw function for ball to add texture to it
+// ball_draw_cbk := func(c *Circle) {
+    // pos := c.Position()
+    // textureWidth := float32(ballTexture.Width)
+    // textureHeight := float32(ballTexture.Height)
+    // srcRect := rl.NewRectangle(0, 0, textureWidth, textureHeight)
+    // destRect := rl.NewRectangle(float32(pos.X), float32(pos.Y), textureWidth, textureHeight)
+    // origin := rl.NewVector2(textureWidth/2, textureHeight/2)
+    // angle := float32(c.Angle() * 180.0 / math.Pi)
+    // rl.DrawTexturePro(ballTexture, srcRect, destRect, origin, float32(angle), rl.White)
+// }
+
+func (c *Circle) SetTexture(texture rl.Texture2D) {
+    // not sure if we want to do this?
+    // c.SetDrawCallback(func (c *Circle){
+        // if c.drawCallback != nil {
+            // c.drawCallback(c)
+        // }
+    // })
+    c.SetDrawCallback(func (c *Circle){
+        pos := c.Position()
+        textureWidth := float32(texture.Width)
+        textureHeight := float32(texture.Height)
+        srcRect := rl.NewRectangle(0, 0, textureWidth, textureHeight)
+        destRect := rl.NewRectangle(float32(pos.X), float32(pos.Y), textureWidth, textureHeight)
+        origin := rl.NewVector2(textureWidth/2, textureHeight/2)
+        angle := float32(c.Angle() * 180.0 / math.Pi)
+        rl.DrawTexturePro(texture, srcRect, destRect, origin, float32(angle), rl.White)
+    })    
+
 }
 
 func (p Circle) IsPhysical() bool {
@@ -443,7 +476,6 @@ type Wall struct {
 	Vertex2 Vector2
 	Width   float64
 	Color   rl.Color
-	Visible bool
 	id      uint64
 	cpBody  *cp.Body
 }
@@ -454,7 +486,6 @@ func NewWall(vertex1 Vector2, vertex2 Vector2, width float64, color rl.Color) Wa
 		Vertex2: vertex2,
 		Width:   width,
 		Color:   color,
-		Visible: true,
 	}
 }
 
@@ -470,7 +501,5 @@ func (e *Wall) addToGame(game *Game, body *cp.Body, shape *cp.Shape) {
 
 func (w *Wall) Update() {}
 func (w *Wall) Draw() {
-	if w.Visible {
-		rl.DrawLineEx(w.Vertex1.ToRaylib(), w.Vertex2.ToRaylib(), float32(w.Width), w.Color)
-	}
+    rl.DrawLineEx(w.Vertex1.ToRaylib(), w.Vertex2.ToRaylib(), float32(w.Width), w.Color)
 }

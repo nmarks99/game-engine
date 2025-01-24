@@ -104,10 +104,8 @@ func (game *Game) Run() {
 
 	for !rl.WindowShouldClose() {
 
-		// call default game.Update()
 		game.Update()
 
-		// Call custom game.Update() if defined
 		if game.updateCallback != nil {
 			game.updateCallback(game)
 		}
@@ -116,10 +114,8 @@ func (game *Game) Run() {
 		rl.BeginDrawing()
 		rl.ClearBackground(game.backgroundColor)
 
-		// call default game.Draw()
 		game.Draw()
 
-		// call custom game.Draw() if defined
 		if game.drawCallback != nil {
 			game.drawCallback(game)
 		}

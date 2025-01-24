@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	rl "github.com/gen2brain/raylib-go/raylib"
-	"math"
 	. "raychip"
 )
 
@@ -19,64 +18,52 @@ func main() {
 	game.SetDamping(0.9)
 
 	// Create a permiter wall (invisible)
-	game.AddPerimiterWall(5, rl.NewColor(0, 0, 0, 0))
+	game.AddPerimiterWall(1, rl.NewColor(0, 0, 0, 0))
 
 	// Cursor texture, hide default cursor
 	cursorTexture := rl.LoadTexture("./assets/cursors/Tiles/tile_0026.png")
 	rl.HideCursor()
 
+	// Texture for the circles
 	ballTexture := rl.LoadTexture("./assets/planets/Terran.png")
 
-	// add custom draw function for ball to add texture to it
-	ball_draw_cbk := func(c *Circle) {
-		pos := c.Position()
-		ballTextureW := float32(ballTexture.Width)
-		ballTextureH := float32(ballTexture.Height)
-		srcRect := rl.NewRectangle(0, 0, ballTextureW, ballTextureH)
-		destRect := rl.NewRectangle(float32(pos.X), float32(pos.Y), ballTextureW, ballTextureH)
-		origin := rl.NewVector2(ballTextureW/2, ballTextureH/2)
-		angle := float32(c.Angle() * 180.0 / math.Pi)
-		rl.DrawTexturePro(ballTexture, srcRect, destRect, origin, float32(angle), rl.White)
-	}
-
-	var mousePos rl.Vector2
-	var mouseVel rl.Vector2
+	var mousePos Vector2
+	var mouseVel Vector2
 	var numEntities int
+	const ballRadius float64 = 20.0
+	const boxWidth float64 = 50.0
+
+	// Custom game update function
 	game.SetUpdateCallback(func(game *Game) {
-		mousePos = rl.GetMousePosition()
-		mouseVel = rl.Vector2Scale(rl.GetMouseDelta(), 50.0)
+		mousePos = Vector2FromRaylib(rl.GetMousePosition())
+		mouseVel = Vector2FromRaylib(rl.Vector2Scale(rl.GetMouseDelta(), 50.0))
 		numEntities = game.EntitiesCount()
 
-		// lift click adds a ball
+		// lift click adds a ball with the velocity of the mouse
 		if rl.IsMouseButtonReleased(rl.MouseButtonLeft) {
-			const ballRadius float64 = 20.0
-			new_ball := NewPhysicalCircle(float64(mousePos.X), float64(mousePos.Y), ballRadius, 1.0, rl.DarkGreen)
-			new_ball.SetDrawCallback(ball_draw_cbk)
-			new_ball.SetVelocity(float64(mouseVel.X), float64(mouseVel.Y))
+			new_ball := NewPhysicalCircle(mousePos.X, mousePos.Y, ballRadius, 1.0, rl.DarkGreen)
+			new_ball.SetTexture(ballTexture)
+			new_ball.SetVelocity(mouseVel.X, mouseVel.Y)
 			game.AddEntity(&new_ball)
 		}
 
-		// right click adds a block
+		// right click adds a square with the velocity of the mouse
 		if rl.IsMouseButtonReleased(rl.MouseButtonRight) {
-			const boxWidth float64 = 50.0
-			new_box := NewPhysicalBox(float64(mousePos.X), float64(mousePos.Y), boxWidth, boxWidth, 1.0, rl.NewColor(39, 81, 130, 255))
-			new_box.SetVelocity(float64(mouseVel.X), float64(mouseVel.Y))
+			new_box := NewPhysicalBox(mousePos.X, mousePos.Y, boxWidth, boxWidth, 1.0, rl.NewColor(39, 81, 130, 255))
+			new_box.SetVelocity(mouseVel.X, mouseVel.Y)
 			game.AddEntity(&new_box)
 		}
 
 		// scroll wheel click adds a non physical circle
 		if rl.IsMouseButtonReleased(rl.MouseButtonMiddle) {
-			const boxWidth float64 = 50.0
-			new_box := NewBox(float64(mousePos.X), float64(mousePos.Y), boxWidth, boxWidth, rl.Red)
+			new_box := NewBox(mousePos.X, mousePos.Y, boxWidth, boxWidth, rl.Red)
 			game.AddEntity(&new_box)
-			// const ballRadius float64 = 20.0
-			// new_ball := NewCircle(Vector2FromRaylib(mousePos), ballRadius, rl.Red)
-			// game.AddEntity(&new_ball)
 		}
 	})
 
+	// Custom game draw function
 	game.SetDrawCallback(func(game *Game) {
-		rl.DrawTextureEx(cursorTexture, mousePos, 0.0, 2.0, rl.White)
+		rl.DrawTextureEx(cursorTexture, mousePos.ToRaylib(), 0.0, 2.0, rl.White)
 		rl.DrawText(fmt.Sprintf("Entities: %d\n", numEntities-4), 10, 10, 20, rl.Black)
 	})
 
