@@ -12,7 +12,21 @@ func main() {
 	game.AddEntity(&box)
 
 	const inc float64 = 10
+	var mousePos rl.Vector2
+    var i int = 0
+    colors := []rl.Color{rl.Black, rl.Red}
+
 	game.SetUpdateCallback(func(g *Game) {
+		mousePos = rl.GetMousePosition()
+
+		if rl.IsMouseButtonReleased(rl.MouseButtonLeft) {
+			if rl.CheckCollisionPointCircle(mousePos, box.Position().ToRaylib(), 50) {
+                i = i ^ 1
+                box.SetColor(colors[i])
+			}
+		}
+
+		// move with w,a,s,d
 		newPos := box.Position()
 		if rl.IsKeyDown(rl.KeyW) {
 			newPos.Y -= inc

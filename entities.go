@@ -114,21 +114,6 @@ func (p *Circle) SetDrawCallback(callback func(*Circle)) {
 	p.drawCallback = callback
 }
 
-// Add Texture
-// ballTexture := rl.LoadTexture("./assets/planets/Terran.png")
-//
-// // add custom draw function for ball to add texture to it
-// ball_draw_cbk := func(c *Circle) {
-    // pos := c.Position()
-    // textureWidth := float32(ballTexture.Width)
-    // textureHeight := float32(ballTexture.Height)
-    // srcRect := rl.NewRectangle(0, 0, textureWidth, textureHeight)
-    // destRect := rl.NewRectangle(float32(pos.X), float32(pos.Y), textureWidth, textureHeight)
-    // origin := rl.NewVector2(textureWidth/2, textureHeight/2)
-    // angle := float32(c.Angle() * 180.0 / math.Pi)
-    // rl.DrawTexturePro(ballTexture, srcRect, destRect, origin, float32(angle), rl.White)
-// }
-
 func (c *Circle) SetTexture(texture rl.Texture2D) {
     // not sure if we want to do this?
     // c.SetDrawCallback(func (c *Circle){
@@ -147,6 +132,10 @@ func (c *Circle) SetTexture(texture rl.Texture2D) {
         rl.DrawTexturePro(texture, srcRect, destRect, origin, float32(angle), rl.White)
     })    
 
+}
+
+func (c *Circle) SetColor(color rl.Color) {
+    c.color = color
 }
 
 func (p Circle) IsPhysical() bool {
@@ -371,6 +360,10 @@ func (b *Box) Draw() {
 	if b.drawCallback != nil {
 		b.drawCallback(b)
 	}
+}
+
+func (b *Box) SetColor(color rl.Color) {
+    b.color = color
 }
 
 func (b *Box) IsPhysical() bool {
