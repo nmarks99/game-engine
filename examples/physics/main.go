@@ -18,8 +18,8 @@ func main() {
 	game := NewGame(SCREEN_WIDTH, SCREEN_HEIGHT, TARGET_FPS)
 	game.SetDamping(0.9)
 
-    // Create a permiter wall (invisible)
-    game.AddPerimiterWall(5, rl.NewColor(0, 0, 0, 0))
+	// Create a permiter wall (invisible)
+	game.AddPerimiterWall(5, rl.NewColor(0, 0, 0, 0))
 
 	// Cursor texture, hide default cursor
 	cursorTexture := rl.LoadTexture("./assets/cursors/Tiles/tile_0026.png")
@@ -28,15 +28,14 @@ func main() {
 	ballTexture := rl.LoadTexture("./assets/planets/Terran.png")
 
 	// add custom draw function for ball to add texture to it
-	ball_draw_cbk := func(p *Circle) {
-		// TODO: create Circle.AddTexture method to do this:
-		pos := p.Position()
+	ball_draw_cbk := func(c *Circle) {
+		pos := c.Position()
 		ballTextureW := float32(ballTexture.Width)
 		ballTextureH := float32(ballTexture.Height)
 		srcRect := rl.NewRectangle(0, 0, ballTextureW, ballTextureH)
 		destRect := rl.NewRectangle(float32(pos.X), float32(pos.Y), ballTextureW, ballTextureH)
 		origin := rl.NewVector2(ballTextureW/2, ballTextureH/2)
-		angle := float32(p.Angle() * 180.0 / math.Pi)
+		angle := float32(c.Angle() * 180.0 / math.Pi)
 		rl.DrawTexturePro(ballTexture, srcRect, destRect, origin, float32(angle), rl.White)
 	}
 
@@ -51,7 +50,7 @@ func main() {
 		// lift click adds a ball
 		if rl.IsMouseButtonReleased(rl.MouseButtonLeft) {
 			const ballRadius float64 = 20.0
-			new_ball := NewPhysicalCircle(Vector2FromRaylib(mousePos), ballRadius, 1.0, rl.DarkGreen)
+			new_ball := NewPhysicalCircle(float64(mousePos.X), float64(mousePos.Y), ballRadius, 1.0, rl.DarkGreen)
 			new_ball.SetDrawCallback(ball_draw_cbk)
 			new_ball.SetVelocity(float64(mouseVel.X), float64(mouseVel.Y))
 			game.AddEntity(&new_ball)
@@ -60,7 +59,7 @@ func main() {
 		// right click adds a block
 		if rl.IsMouseButtonReleased(rl.MouseButtonRight) {
 			const boxWidth float64 = 50.0
-			new_box := NewPhysicalBox(Vector2FromRaylib(mousePos), boxWidth, boxWidth, 1.0, rl.NewColor(39, 81, 130, 255))
+			new_box := NewPhysicalBox(float64(mousePos.X), float64(mousePos.Y), boxWidth, boxWidth, 1.0, rl.NewColor(39, 81, 130, 255))
 			new_box.SetVelocity(float64(mouseVel.X), float64(mouseVel.Y))
 			game.AddEntity(&new_box)
 		}
@@ -68,7 +67,7 @@ func main() {
 		// scroll wheel click adds a non physical circle
 		if rl.IsMouseButtonReleased(rl.MouseButtonMiddle) {
 			const boxWidth float64 = 50.0
-			new_box := NewBox(Vector2FromRaylib(mousePos), boxWidth, boxWidth, rl.Red)
+			new_box := NewBox(float64(mousePos.X), float64(mousePos.Y), boxWidth, boxWidth, rl.Red)
 			game.AddEntity(&new_box)
 			// const ballRadius float64 = 20.0
 			// new_ball := NewCircle(Vector2FromRaylib(mousePos), ballRadius, rl.Red)
