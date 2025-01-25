@@ -396,12 +396,56 @@ func (b Box) DefaultDraw() {
 	defaultBoxDrawFunc(&b)
 }
 
+func (b *Box) SetDrawCallback(callback func(*Box)) {
+	b.drawCallback = callback
+}
+
 func (b *Box) SetUpdateCallback(callback func(*Box)) {
 	b.updateCallback = callback
 }
 
-func (b *Box) SetDrawCallback(callback func(*Box)) {
-	b.drawCallback = callback
+
+func (b *Box) OnClick(button rl.MouseButton, state MouseState, callback func()) {
+	var oldUpdateCallback func(*Box)
+	if b.updateCallback != nil {
+		oldUpdateCallback = b.updateCallback
+	}
+
+	b.updateCallback = func(b *Box) {
+		if oldUpdateCallback != nil {
+			oldUpdateCallback(b)
+		}
+
+		mousePos := rl.GetMousePosition()
+
+		var clicked bool = false
+		switch state {
+		case MouseUp:
+			if rl.IsMouseButtonUp(button) {
+				clicked = true
+			}
+		case MouseDown:
+			if rl.IsMouseButtonDown(button) {
+				clicked = true
+			}
+		case MousePressed:
+			if rl.IsMouseButtonPressed(button) {
+				clicked = true
+			}
+		case MouseReleased:
+			if rl.IsMouseButtonReleased(button) {
+				clicked = true
+			}
+		}
+
+		if clicked {
+			boxRect := rl.NewRectangle(float32(b.position.X-b.width/2.0), float32(b.position.Y-b.height/2.0), float32(b.width), float32(b.height))
+			if rl.CheckCollisionPointRec(mousePos, boxRect) {
+				callback()
+			}
+		}
+
+	}
 }
 
 func (b *Box) Update() {
