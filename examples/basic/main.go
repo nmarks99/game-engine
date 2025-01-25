@@ -16,16 +16,15 @@ func main() {
     var i int = 0
     colors := []rl.Color{rl.Black, rl.Red}
 
+    game.OnClick(rl.MouseButtonLeft, MouseReleased, func(){
+        mousePos = rl.GetMousePosition()
+        if rl.CheckCollisionPointCircle(mousePos, box.Position().ToRaylib(), 30) {
+            i = i ^ 1
+            box.SetColor(colors[i])
+        }
+    })
+
 	game.SetUpdateCallback(func(g *Game) {
-		mousePos = rl.GetMousePosition()
-
-		if rl.IsMouseButtonReleased(rl.MouseButtonLeft) {
-			if rl.CheckCollisionPointCircle(mousePos, box.Position().ToRaylib(), 50) {
-                i = i ^ 1
-                box.SetColor(colors[i])
-			}
-		}
-
 		// move with w,a,s,d
 		newPos := box.Position()
 		if rl.IsKeyDown(rl.KeyW) {

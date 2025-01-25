@@ -34,6 +34,14 @@ func NewGame(screenWidth int32, screenHeight int32, targetFPS int32) Game {
 	return game
 }
 
+type MouseState int
+const (
+    MouseUp MouseState = iota
+    MouseDown
+    MousePressed
+    MouseReleased
+)
+
 func (game *Game) SetWindowName(name string) {
 	game.windowName = name
 }
@@ -65,12 +73,54 @@ func (game *Game) SetBackgroundColor(color rl.Color) {
 	game.backgroundColor = color
 }
 
-func (game *Game) SetUpdateCallback(callback func(*Game)) {
-	game.updateCallback = callback
-}
-
 func (game *Game) SetDrawCallback(callback func(*Game)) {
 	game.drawCallback = callback
+}
+
+func (game *Game) SetUpdateCallback(callback func(*Game)) {
+    var oldUpdateCallback func(*Game)
+    if game.updateCallback != nil {
+        oldUpdateCallback = game.updateCallback
+    }
+	game.updateCallback = func(g *Game) {
+        if oldUpdateCallback != nil {
+            oldUpdateCallback(g)
+        }
+        callback(g)
+    }
+}
+
+func (game *Game) OnClick(button rl.MouseButton, state MouseState, callback func()) {
+    var oldUpdateCallback func(*Game)
+    if game.updateCallback != nil {
+        oldUpdateCallback = game.updateCallback
+    }
+
+    game.updateCallback = func(g *Game) {
+    
+        if oldUpdateCallback != nil {
+            oldUpdateCallback(g)
+        }
+
+        switch state {
+        case MouseUp:
+            if rl.IsMouseButtonUp(button) {
+                callback()
+            }
+        case MouseDown:
+            if rl.IsMouseButtonDown(button) {
+                callback()
+            }
+        case MousePressed:
+            if rl.IsMouseButtonPressed(button) {
+                callback()
+            }
+        case MouseReleased:
+            if rl.IsMouseButtonReleased(button) {
+                callback()
+            }
+        }
+    }
 }
 
 func (game *Game) SetGravity(v Vector2) {

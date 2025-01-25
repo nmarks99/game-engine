@@ -106,12 +106,36 @@ func (c *Circle) Draw() {
 		c.drawCallback(c)
 	}
 }
-func (p *Circle) SetUpdateCallback(callback func(*Circle)) {
-	p.updateCallback = callback
+func (c *Circle) SetUpdateCallback(callback func(*Circle)) {
+    // var oldUpdateCallback func(*Game)
+    // if game.updateCallback != nil {
+        // oldUpdateCallback = game.updateCallback
+    // }
+	// game.updateCallback = func(g *Game) {
+        // if oldUpdateCallback != nil {
+            // oldUpdateCallback(g)
+        // }
+        // callback(g)
+    // }
+    
+    // var oldUpdateCallback func(*Circle)
+    // if c.updateCallback != nil {
+        // oldUpdateCallback = c.updateCallback
+    // }
+    // c.updateCallback = func(c *Circle){
+        // if oldUpdateCallback != nil {
+            // oldUpdateCallback(c)
+        // }
+        // callback(c)
+    // }
+    c.updateCallback = callback
 }
 
 func (p *Circle) SetDrawCallback(callback func(*Circle)) {
 	p.drawCallback = callback
+}
+
+func (c *Circle) OnClick(button rl.MouseButton, state MouseState, callback func()) {
 }
 
 func (c *Circle) SetTexture(texture rl.Texture2D) {
