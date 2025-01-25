@@ -106,60 +106,90 @@ func (c *Circle) Draw() {
 		c.drawCallback(c)
 	}
 }
-func (c *Circle) SetUpdateCallback(callback func(*Circle)) {
-    // var oldUpdateCallback func(*Game)
-    // if game.updateCallback != nil {
-        // oldUpdateCallback = game.updateCallback
-    // }
-	// game.updateCallback = func(g *Game) {
-        // if oldUpdateCallback != nil {
-            // oldUpdateCallback(g)
-        // }
-        // callback(g)
-    // }
-    
-    // var oldUpdateCallback func(*Circle)
-    // if c.updateCallback != nil {
-        // oldUpdateCallback = c.updateCallback
-    // }
-    // c.updateCallback = func(c *Circle){
-        // if oldUpdateCallback != nil {
-            // oldUpdateCallback(c)
-        // }
-        // callback(c)
-    // }
-    c.updateCallback = callback
-}
 
 func (p *Circle) SetDrawCallback(callback func(*Circle)) {
 	p.drawCallback = callback
 }
 
+func (c *Circle) SetUpdateCallback(callback func(*Circle)) {
+	var oldUpdateCallback func(*Circle)
+	if c.updateCallback != nil {
+		oldUpdateCallback = c.updateCallback
+	}
+
+	c.updateCallback = func(c *Circle) {
+		if oldUpdateCallback != nil {
+			oldUpdateCallback(c)
+		}
+		callback(c)
+	}
+}
+
 func (c *Circle) OnClick(button rl.MouseButton, state MouseState, callback func()) {
+	var oldUpdateCallback func(*Circle)
+	if c.updateCallback != nil {
+		oldUpdateCallback = c.updateCallback
+	}
+
+	c.updateCallback = func(c *Circle) {
+		if oldUpdateCallback != nil {
+			oldUpdateCallback(c)
+		}
+
+		mousePos := rl.GetMousePosition()
+
+		var clicked bool = false
+		switch state {
+		case MouseUp:
+			if rl.IsMouseButtonUp(button) {
+				clicked = true
+			}
+		case MouseDown:
+			if rl.IsMouseButtonDown(button) {
+				clicked = true
+			}
+		case MousePressed:
+			if rl.IsMouseButtonPressed(button) {
+				clicked = true
+			}
+		case MouseReleased:
+			if rl.IsMouseButtonReleased(button) {
+				clicked = true
+			}
+		}
+
+		if clicked {
+			if rl.CheckCollisionPointCircle(mousePos, c.position.ToRaylib(), float32(c.radius)) {
+				callback()
+			}
+		}
+
+	}
+
 }
 
 func (c *Circle) SetTexture(texture rl.Texture2D) {
-    // not sure if we want to do this?
-    // c.SetDrawCallback(func (c *Circle){
-        // if c.drawCallback != nil {
-            // c.drawCallback(c)
-        // }
-    // })
-    c.SetDrawCallback(func (c *Circle){
-        pos := c.Position()
-        textureWidth := float32(texture.Width)
-        textureHeight := float32(texture.Height)
-        srcRect := rl.NewRectangle(0, 0, textureWidth, textureHeight)
-        destRect := rl.NewRectangle(float32(pos.X), float32(pos.Y), textureWidth, textureHeight)
-        origin := rl.NewVector2(textureWidth/2, textureHeight/2)
-        angle := float32(c.Angle() * 180.0 / math.Pi)
-        rl.DrawTexturePro(texture, srcRect, destRect, origin, float32(angle), rl.White)
-    })    
+	// not sure if we want to do this?
+	// c.SetDrawCallback(func (c *Circle){
+	// if c.drawCallback != nil {
+	// c.drawCallback(c)
+	// }
+	// })
+	c.SetDrawCallback(func(c *Circle) {
+		pos := c.Position()
+		textureWidth := float32(texture.Width)
+		textureHeight := float32(texture.Height)
+		srcRect := rl.NewRectangle(0, 0, textureWidth, textureHeight)
+		destRect := rl.NewRectangle(float32(pos.X), float32(pos.Y), textureWidth, textureHeight)
+		origin := rl.NewVector2(textureWidth/2, textureHeight/2)
+		angle := float32(c.Angle() * 180.0 / math.Pi)
+		rl.DrawTexturePro(texture, srcRect, destRect, origin, float32(angle), rl.White)
+	})
 
 }
 
 func (c *Circle) SetColor(color rl.Color) {
-    c.color = color
+	c.color = color
 }
 
 func (p Circle) IsPhysical() bool {
@@ -387,7 +417,7 @@ func (b *Box) Draw() {
 }
 
 func (b *Box) SetColor(color rl.Color) {
-    b.color = color
+	b.color = color
 }
 
 func (b *Box) IsPhysical() bool {
@@ -518,5 +548,5 @@ func (e *Wall) addToGame(game *Game, body *cp.Body, shape *cp.Shape) {
 
 func (w *Wall) Update() {}
 func (w *Wall) Draw() {
-    rl.DrawLineEx(w.Vertex1.ToRaylib(), w.Vertex2.ToRaylib(), float32(w.Width), w.Color)
+	rl.DrawLineEx(w.Vertex1.ToRaylib(), w.Vertex2.ToRaylib(), float32(w.Width), w.Color)
 }

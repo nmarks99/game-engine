@@ -8,25 +8,21 @@ import (
 func main() {
 	game := NewGame(600, 600, 60)
 
-	box := NewBox(300, 300, 50, 50, rl.Red)
-	game.AddEntity(&box)
+    ball := NewCircle(300, 300, 30, rl.Red)
+    game.AddEntity(&ball)
 
 	const inc float64 = 10
-	var mousePos rl.Vector2
     var i int = 0
     colors := []rl.Color{rl.Black, rl.Red}
 
-    game.OnClick(rl.MouseButtonLeft, MouseReleased, func(){
-        mousePos = rl.GetMousePosition()
-        if rl.CheckCollisionPointCircle(mousePos, box.Position().ToRaylib(), 30) {
-            i = i ^ 1
-            box.SetColor(colors[i])
-        }
+    ball.OnClick(rl.MouseButtonLeft, MouseReleased, func(){
+        i = i ^ 1
+        ball.SetColor(colors[i])
     })
 
 	game.SetUpdateCallback(func(g *Game) {
 		// move with w,a,s,d
-		newPos := box.Position()
+		newPos := ball.Position()
 		if rl.IsKeyDown(rl.KeyW) {
 			newPos.Y -= inc
 		}
@@ -39,7 +35,7 @@ func main() {
 		if rl.IsKeyDown(rl.KeyA) {
 			newPos.X -= inc
 		}
-		box.SetPosition(newPos.X, newPos.Y)
+		ball.SetPosition(newPos.X, newPos.Y)
 	})
 
 	game.Run()
