@@ -9,6 +9,7 @@ import (
 type Entity interface {
 	Update()
 	Draw()
+    Id() uint64
 	addToGame(game *Game, body *cp.Body, shape *cp.Shape)
 }
 
@@ -84,6 +85,10 @@ func (e *Circle) addToGame(game *Game, body *cp.Body, shape *cp.Shape) {
 	}
 	e.id = uint64(len(game.entities))
 	game.entities = append(game.entities, e)
+}
+
+func (c *Circle) Id() uint64 {
+    return c.id
 }
 
 func defaultCircleDrawFunc(p *Circle) {
@@ -385,6 +390,10 @@ func (e *Box) addToGame(game *Game, body *cp.Body, shape *cp.Shape) {
 	game.entities = append(game.entities, e)
 }
 
+func (b *Box) Id() uint64 {
+    return b.id
+}
+
 func defaultBoxDrawFunc(b *Box) {
 	angle := b.Angle() * 180.0 / math.Pi
 	pos := b.Position()
@@ -588,6 +597,10 @@ func (e *Wall) addToGame(game *Game, body *cp.Body, shape *cp.Shape) {
 	e.id = uint64(len(game.entities))
 	e.cpBody = body
 	game.entities = append(game.entities, e)
+}
+
+func (w *Wall) Id() uint64 {
+    return w.id
 }
 
 func (w *Wall) Update() {}

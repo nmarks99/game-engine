@@ -3,6 +3,7 @@ package raychip
 import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"github.com/jakecoffman/cp/v2"
+    "fmt"
 )
 
 type Game struct {
@@ -180,4 +181,23 @@ func (game *Game) AddEntity(entity Entity) {
 	var body *cp.Body
 	var shape *cp.Shape
 	entity.addToGame(game, body, shape)
+}
+
+func (game *Game) RemoveEntity(entity Entity) {
+    var found bool = false
+    var ind int
+    for i, v := range game.entities {
+        if v.Id() == entity.Id() {
+            found = true
+            ind = i
+            fmt.Printf("Id: %d, i: %d\n", v.Id(), i)
+        }
+    }
+    if found {
+        game.entities = append(game.entities[:ind], game.entities[ind+1:]...)
+    }
+}
+
+func (game *Game) ClearEntities() {
+    game.entities = game.entities[:0]
 }
