@@ -1,9 +1,9 @@
 package raychip
 
 import (
+	"fmt"
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"github.com/jakecoffman/cp/v2"
-    "fmt"
 )
 
 type Game struct {
@@ -36,11 +36,12 @@ func NewGame(screenWidth int32, screenHeight int32, targetFPS int32) Game {
 }
 
 type MouseState int
+
 const (
-    MouseUp MouseState = iota
-    MouseDown
-    MousePressed
-    MouseReleased
+	MouseUp MouseState = iota
+	MouseDown
+	MousePressed
+	MouseReleased
 )
 
 func (game *Game) SetWindowName(name string) {
@@ -79,49 +80,49 @@ func (game *Game) SetDrawCallback(callback func(*Game)) {
 }
 
 func (game *Game) SetUpdateCallback(callback func(*Game)) {
-    var oldUpdateCallback func(*Game)
-    if game.updateCallback != nil {
-        oldUpdateCallback = game.updateCallback
-    }
+	var oldUpdateCallback func(*Game)
+	if game.updateCallback != nil {
+		oldUpdateCallback = game.updateCallback
+	}
 	game.updateCallback = func(g *Game) {
-        if oldUpdateCallback != nil {
-            oldUpdateCallback(g)
-        }
-        callback(g)
-    }
+		if oldUpdateCallback != nil {
+			oldUpdateCallback(g)
+		}
+		callback(g)
+	}
 }
 
 func (game *Game) OnClick(button rl.MouseButton, state MouseState, callback func()) {
-    var oldUpdateCallback func(*Game)
-    if game.updateCallback != nil {
-        oldUpdateCallback = game.updateCallback
-    }
+	var oldUpdateCallback func(*Game)
+	if game.updateCallback != nil {
+		oldUpdateCallback = game.updateCallback
+	}
 
-    game.updateCallback = func(g *Game) {
-    
-        if oldUpdateCallback != nil {
-            oldUpdateCallback(g)
-        }
+	game.updateCallback = func(g *Game) {
 
-        switch state {
-        case MouseUp:
-            if rl.IsMouseButtonUp(button) {
-                callback()
-            }
-        case MouseDown:
-            if rl.IsMouseButtonDown(button) {
-                callback()
-            }
-        case MousePressed:
-            if rl.IsMouseButtonPressed(button) {
-                callback()
-            }
-        case MouseReleased:
-            if rl.IsMouseButtonReleased(button) {
-                callback()
-            }
-        }
-    }
+		if oldUpdateCallback != nil {
+			oldUpdateCallback(g)
+		}
+
+		switch state {
+		case MouseUp:
+			if rl.IsMouseButtonUp(button) {
+				callback()
+			}
+		case MouseDown:
+			if rl.IsMouseButtonDown(button) {
+				callback()
+			}
+		case MousePressed:
+			if rl.IsMouseButtonPressed(button) {
+				callback()
+			}
+		case MouseReleased:
+			if rl.IsMouseButtonReleased(button) {
+				callback()
+			}
+		}
+	}
 }
 
 func (game *Game) SetGravity(v Vector2) {
@@ -184,20 +185,20 @@ func (game *Game) AddEntity(entity Entity) {
 }
 
 func (game *Game) RemoveEntity(entity Entity) {
-    var found bool = false
-    var ind int
-    for i, v := range game.entities {
-        if v.Id() == entity.Id() {
-            found = true
-            ind = i
-            fmt.Printf("Id: %d, i: %d\n", v.Id(), i)
-        }
-    }
-    if found {
-        game.entities = append(game.entities[:ind], game.entities[ind+1:]...)
-    }
+	var found bool = false
+	var ind int
+	for i, v := range game.entities {
+		if v.Id() == entity.Id() {
+			found = true
+			ind = i
+			fmt.Printf("Id: %d, i: %d\n", v.Id(), i)
+		}
+	}
+	if found {
+		game.entities = append(game.entities[:ind], game.entities[ind+1:]...)
+	}
 }
 
 func (game *Game) ClearEntities() {
-    game.entities = game.entities[:0]
+	game.entities = game.entities[:0]
 }

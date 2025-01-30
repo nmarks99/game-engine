@@ -9,7 +9,7 @@ import (
 type Entity interface {
 	Update()
 	Draw()
-    Id() uint64
+	Id() uint64
 	addToGame(game *Game, body *cp.Body, shape *cp.Shape)
 }
 
@@ -88,7 +88,7 @@ func (e *Circle) addToGame(game *Game, body *cp.Body, shape *cp.Shape) {
 }
 
 func (c *Circle) Id() uint64 {
-    return c.id
+	return c.id
 }
 
 func defaultCircleDrawFunc(p *Circle) {
@@ -391,7 +391,7 @@ func (e *Box) addToGame(game *Game, body *cp.Body, shape *cp.Shape) {
 }
 
 func (b *Box) Id() uint64 {
-    return b.id
+	return b.id
 }
 
 func defaultBoxDrawFunc(b *Box) {
@@ -412,7 +412,6 @@ func (b *Box) SetDrawCallback(callback func(*Box)) {
 func (b *Box) SetUpdateCallback(callback func(*Box)) {
 	b.updateCallback = callback
 }
-
 
 func (b *Box) OnClick(button rl.MouseButton, state MouseState, callback func()) {
 	var oldUpdateCallback func(*Box)
@@ -600,7 +599,7 @@ func (e *Wall) addToGame(game *Game, body *cp.Body, shape *cp.Shape) {
 }
 
 func (w *Wall) Id() uint64 {
-    return w.id
+	return w.id
 }
 
 func (w *Wall) Update() {}
