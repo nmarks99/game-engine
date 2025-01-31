@@ -1,7 +1,6 @@
 package raychip
 
 import (
-	"fmt"
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"github.com/jakecoffman/cp/v2"
 )
@@ -191,7 +190,6 @@ func (game *Game) RemoveEntity(entity Entity) {
 		if v.Id() == entity.Id() {
 			found = true
 			ind = i
-			fmt.Printf("Id: %d, i: %d\n", v.Id(), i)
 		}
 	}
 	if found {
@@ -213,6 +211,20 @@ func NewScene() Scene {
 
 func (s *Scene) AddEntity(entity Entity) {
 	s.entities = append(s.entities, entity)
+}
+
+func (scene *Scene) RemoveEntity(entity Entity) {
+	var found bool = false
+	var ind int
+	for i, v := range scene.entities {
+		if v.Id() == entity.Id() {
+			found = true
+			ind = i
+		}
+	}
+	if found {
+		scene.entities = append(scene.entities[:ind], scene.entities[ind+1:]...)
+	}
 }
 
 func (game *Game) SetScene(scene Scene) {

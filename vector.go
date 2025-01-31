@@ -23,9 +23,9 @@ func (v Vector2) ToChipmunk() cp.Vector {
 }
 
 func Vector2FromRaylib(v rl.Vector2) Vector2 {
-    return NewVector2(float64(v.X), float64(v.Y))
+	return NewVector2(float64(v.X), float64(v.Y))
 }
 
 func Vector2FromChipmunk(v cp.Vector) Vector2 {
-    return NewVector2(v.X, v.Y)
+	return NewVector2(v.X, v.Y)
 }
