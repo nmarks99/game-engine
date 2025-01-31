@@ -202,3 +202,22 @@ func (game *Game) RemoveEntity(entity Entity) {
 func (game *Game) ClearEntities() {
 	game.entities = game.entities[:0]
 }
+
+type Scene struct {
+	entities []Entity
+}
+
+func NewScene() Scene {
+	return Scene{}
+}
+
+func (s *Scene) AddEntity(entity Entity) {
+	s.entities = append(s.entities, entity)
+}
+
+func (game *Game) SetScene(scene Scene) {
+	game.ClearEntities()
+	for i := range scene.entities {
+		game.AddEntity(scene.entities[i])
+	}
+}
