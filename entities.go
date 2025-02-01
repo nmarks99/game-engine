@@ -4,13 +4,14 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"github.com/jakecoffman/cp/v2"
 	"math"
+    // "fmt"
 )
 
 type Entity interface {
 	Update()
 	Draw()
 	Id() uint64
-	addToGame(game *Game, body *cp.Body, shape *cp.Shape)
+	addToGame(game *Game, args ...any)
 }
 
 type Circle struct {
@@ -69,19 +70,23 @@ func (p Circle) limitVelocity(body *cp.Body, gravity cp.Vector, damping float64,
 	}
 }
 
-func (e *Circle) addToGame(game *Game, body *cp.Body, shape *cp.Shape) {
+func (e *Circle) addToGame(game *Game, args ...any) {
 	if e.physical {
-		game.physical = true
-		body = game.space.AddBody(cp.NewBody(e.mass, cp.MomentForCircle(e.mass, 0.0, e.radius, cp.Vector{})))
-		body.SetType(cp.BODY_DYNAMIC)
-		body.SetPosition(cp.Vector{X: e.position.X, Y: e.position.Y})
-		body.SetVelocity(e.velocity.X, e.velocity.Y)
-		shape = game.space.AddShape(cp.NewCircle(body, e.radius, cp.Vector{}))
-		shape.SetElasticity(e.elasticity)
-		shape.SetFriction(e.friction)
-		body.SetVelocityUpdateFunc(e.limitVelocity)
-		e.cpBody = body
-		e.cpShape = shape
+		if body, ok := args[0].(*cp.Body); ok {
+			if shape, ok := args[1].(*cp.Shape); ok {
+				game.physical = true
+				body = game.space.AddBody(cp.NewBody(e.mass, cp.MomentForCircle(e.mass, 0.0, e.radius, cp.Vector{})))
+				body.SetType(cp.BODY_DYNAMIC)
+				body.SetPosition(cp.Vector{X: e.position.X, Y: e.position.Y})
+				body.SetVelocity(e.velocity.X, e.velocity.Y)
+				shape = game.space.AddShape(cp.NewCircle(body, e.radius, cp.Vector{}))
+				shape.SetElasticity(e.elasticity)
+				shape.SetFriction(e.friction)
+				body.SetVelocityUpdateFunc(e.limitVelocity)
+				e.cpBody = body
+				e.cpShape = shape
+			}
+		}
 	}
 	e.id = uint64(len(game.entities))
 	game.entities = append(game.entities, e)
@@ -373,18 +378,22 @@ func (b Box) limitVelocity(body *cp.Body, gravity cp.Vector, damping float64, dt
 	}
 }
 
-func (e *Box) addToGame(game *Game, body *cp.Body, shape *cp.Shape) {
+func (e *Box) addToGame(game *Game, args ...any) {
 	if e.physical {
-		game.physical = true
-		body = game.space.AddBody(cp.NewBody(e.mass, cp.MomentForBox(e.mass, e.width, e.height)))
-		body.SetPosition(cp.Vector{X: e.position.X, Y: e.position.Y})
-		body.SetVelocity(e.velocity.X, e.velocity.Y)
-		shape = game.space.AddShape(cp.NewBox(body, e.width, e.height, 0))
-		shape.SetElasticity(e.elasticity)
-		shape.SetFriction(e.friction)
-		body.SetVelocityUpdateFunc(e.limitVelocity)
-		e.cpBody = body
-		e.cpShape = shape
+		if body, ok := args[0].(*cp.Body); ok {
+			if shape, ok := args[1].(*cp.Shape); ok {
+				game.physical = true
+				body = game.space.AddBody(cp.NewBody(e.mass, cp.MomentForBox(e.mass, e.width, e.height)))
+				body.SetPosition(cp.Vector{X: e.position.X, Y: e.position.Y})
+				body.SetVelocity(e.velocity.X, e.velocity.Y)
+				shape = game.space.AddShape(cp.NewBox(body, e.width, e.height, 0))
+				shape.SetElasticity(e.elasticity)
+				shape.SetFriction(e.friction)
+				body.SetVelocityUpdateFunc(e.limitVelocity)
+				e.cpBody = body
+				e.cpShape = shape
+			}
+		}
 	}
 	e.id = uint64(len(game.entities))
 	game.entities = append(game.entities, e)
@@ -392,6 +401,18 @@ func (e *Box) addToGame(game *Game, body *cp.Body, shape *cp.Shape) {
 
 func (b *Box) Id() uint64 {
 	return b.id
+}
+
+func (b *Box) Update() {
+	if b.updateCallback != nil {
+		b.updateCallback(b)
+	}
+}
+
+func (b *Box) Draw() {
+	if b.drawCallback != nil {
+		b.drawCallback(b)
+	}
 }
 
 func defaultBoxDrawFunc(b *Box) {
@@ -456,23 +477,37 @@ func (b *Box) OnClick(button rl.MouseButton, state MouseState, callback func()) 
 	}
 }
 
-func (b *Box) Update() {
-	if b.updateCallback != nil {
-		b.updateCallback(b)
-	}
-}
-
-func (b *Box) Draw() {
-	if b.drawCallback != nil {
-		b.drawCallback(b)
-	}
-}
+// func (b *Box) OnHoverAlpha(alphaBase uint8, alphaHover uint8) {
+	// var oldUpdateCallback func(*Box)
+	// if b.updateCallback != nil {
+		// oldUpdateCallback = b.updateCallback
+	// }
+//
+	// b.updateCallback = func(b *Box) {
+		// if oldUpdateCallback != nil {
+			// oldUpdateCallback(b)
+		// }
+		// mousePos := rl.GetMousePosition()
+        // alphaBase = b.color.A
+		// buttonRect := rl.NewRectangle(float32(b.position.X-b.width/2.0), float32(b.position.Y-b.height/2.0), float32(b.width), float32(b.height))
+		// if rl.CheckCollisionPointRec(mousePos, buttonRect) {
+            // b.SetColor(rl.ColorAlpha(b.Color(), float32(alphaHover)/math.MaxUint8))
+		// } else {
+            // b.SetColor(rl.ColorAlpha(b.Color(), float32(alphaBase)/math.MaxUint8))
+        // }
+//
+	// }
+// }
 
 func (b *Box) SetColor(color rl.Color) {
 	b.color = color
 }
 
-func (b *Box) IsPhysical() bool {
+func (b Box) Color() rl.Color {
+	return b.color
+}
+
+func (b Box) IsPhysical() bool {
 	return b.physical
 }
 
@@ -588,13 +623,17 @@ func NewWall(vertex1 Vector2, vertex2 Vector2, width float64, color rl.Color) Wa
 	}
 }
 
-func (e *Wall) addToGame(game *Game, body *cp.Body, shape *cp.Shape) {
-	body = cp.NewStaticBody()
-	shape = game.space.AddShape(cp.NewSegment(body, cp.Vector{X: e.Vertex1.X, Y: e.Vertex1.Y}, cp.Vector{X: e.Vertex2.X, Y: e.Vertex2.Y}, e.Width/2))
-	shape.SetElasticity(1)
-	shape.SetFriction(1)
+func (e *Wall) addToGame(game *Game, args ...any) {
+	if body, ok := args[0].(*cp.Body); ok {
+		if shape, ok := args[1].(*cp.Shape); ok {
+			body = cp.NewStaticBody()
+			shape = game.space.AddShape(cp.NewSegment(body, cp.Vector{X: e.Vertex1.X, Y: e.Vertex1.Y}, cp.Vector{X: e.Vertex2.X, Y: e.Vertex2.Y}, e.Width/2))
+			shape.SetElasticity(1)
+			shape.SetFriction(1)
+			e.id = uint64(len(game.entities))
+		}
+	}
 	e.id = uint64(len(game.entities))
-	e.cpBody = body
 	game.entities = append(game.entities, e)
 }
 
