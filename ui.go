@@ -1,7 +1,7 @@
 package raychip
 
 import (
-	"math"
+	// "math"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 	// "fmt"
@@ -94,7 +94,7 @@ func (e *Button) addToGame(game *Game, args ...any) {
 	game.entities = append(game.entities, e)
 }
 
-func (b *Button) OnClick(button rl.MouseButton, state MouseState, callback func()) {
+func (b *Button) OnClick(game *Game, button rl.MouseButton, state MouseState, callback func()) {
 	var oldUpdateCallback func(*Button)
 	if b.updateCallback != nil {
 		oldUpdateCallback = b.updateCallback
@@ -104,8 +104,6 @@ func (b *Button) OnClick(button rl.MouseButton, state MouseState, callback func(
 		if oldUpdateCallback != nil {
 			oldUpdateCallback(b)
 		}
-
-		mousePos := rl.GetMousePosition()
 
 		var clicked bool = false
 		switch state {
@@ -129,7 +127,7 @@ func (b *Button) OnClick(button rl.MouseButton, state MouseState, callback func(
 
 		if clicked {
 			boxRect := rl.NewRectangle(float32(b.position.X-b.width/2.0), float32(b.position.Y-b.height/2.0), float32(b.width), float32(b.height))
-			if rl.CheckCollisionPointRec(mousePos, boxRect) {
+			if rl.CheckCollisionPointRec(game.mousePosition.ToRaylib(), boxRect) {
 				callback()
 			}
 		}
@@ -137,7 +135,7 @@ func (b *Button) OnClick(button rl.MouseButton, state MouseState, callback func(
 	}
 }
 
-func (b *Button) OnHover(callback func()) {
+func (b *Button) OnHover(game *Game, callbackOn func(), callbackOff func()) {
 	var oldUpdateCallback func(*Button)
 	if b.updateCallback != nil {
 		oldUpdateCallback = b.updateCallback
@@ -147,32 +145,33 @@ func (b *Button) OnHover(callback func()) {
 		if oldUpdateCallback != nil {
 			oldUpdateCallback(b)
 		}
-		mousePos := rl.GetMousePosition()
 		buttonRect := rl.NewRectangle(float32(b.position.X-b.width/2.0), float32(b.position.Y-b.height/2.0), float32(b.width), float32(b.height))
-		if rl.CheckCollisionPointRec(mousePos, buttonRect) {
-			callback()
-		}
-
-	}
-}
-
-func (b *Button) OnHoverAlpha(alphaBase uint8, alphaHover uint8) {
-	var oldUpdateCallback func(*Button)
-	if b.updateCallback != nil {
-		oldUpdateCallback = b.updateCallback
-	}
-
-	b.updateCallback = func(b *Button) {
-		if oldUpdateCallback != nil {
-			oldUpdateCallback(b)
-		}
-		mousePos := rl.GetMousePosition()
-		buttonRect := rl.NewRectangle(float32(b.position.X-b.width/2.0), float32(b.position.Y-b.height/2.0), float32(b.width), float32(b.height))
-		if rl.CheckCollisionPointRec(mousePos, buttonRect) {
-            b.SetColor(rl.ColorAlpha(b.Color(), float32(alphaHover)/math.MaxUint8))
+		if rl.CheckCollisionPointRec(game.mousePosition.ToRaylib(), buttonRect) {
+			callbackOn()
 		} else {
-            b.SetColor(rl.ColorAlpha(b.Color(), float32(alphaBase)/math.MaxUint8))
+			callbackOff()
         }
 
 	}
 }
+
+// func (b *Button) OnHoverAlpha(game *Game, alphaBase uint8, alphaHover uint8) {
+    // var oldUpdateCallback func(*Button)
+    // if b.updateCallback != nil {
+        // oldUpdateCallback = b.updateCallback
+    // }
+//
+    // b.updateCallback = func(b *Button) {
+        // if oldUpdateCallback != nil {
+            // oldUpdateCallback(b)
+        // }
+        // mousePos := game.mousePosition.ToRaylib()
+        // buttonRect := rl.NewRectangle(float32(b.position.X-b.width/2.0), float32(b.position.Y-b.height/2.0), float32(b.width), float32(b.height))
+        // if rl.CheckCollisionPointRec(mousePos, buttonRect) {
+            // b.SetColor(rl.ColorAlpha(b.Color(), float32(alphaHover)/math.MaxUint8))
+        // } else {
+            // b.SetColor(rl.ColorAlpha(b.Color(), float32(alphaBase)/math.MaxUint8))
+        // }
+//
+    // }
+// }

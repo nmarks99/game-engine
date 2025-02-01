@@ -15,14 +15,14 @@ func main() {
 
 	var ballSelect int = 0
 	ballColors := []rl.Color{rl.Black, rl.Red}
-	ball.OnClick(rl.MouseButtonLeft, MouseReleased, func() {
+	ball.OnClick(&game, rl.MouseButtonLeft, MouseReleased, func() {
 		ballSelect = ballSelect ^ 1
 		ball.SetColor(ballColors[ballSelect])
 	})
 
 	var boxSelect int = 0
 	boxColors := []rl.Color{rl.Black, rl.Red}
-	box.OnClick(rl.MouseButtonLeft, MouseReleased, func() {
+	box.OnClick(&game, rl.MouseButtonLeft, MouseReleased, func() {
 		boxSelect = boxSelect ^ 1
 		box.SetColor(boxColors[boxSelect])
 	})

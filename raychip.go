@@ -16,6 +16,7 @@ type Game struct {
 	backgroundColor rl.Color
 	updateCallback  func(*Game)
 	drawCallback    func(*Game)
+	mousePosition   Vector2
 }
 
 func NewGame(screenWidth int32, screenHeight int32, targetFPS int32) Game {
@@ -72,6 +73,10 @@ func (game Game) Dt() float64 {
 
 func (game *Game) SetBackgroundColor(color rl.Color) {
 	game.backgroundColor = color
+}
+
+func (game Game) MousePosition() Vector2 {
+    return game.mousePosition
 }
 
 func (game *Game) SetDrawCallback(callback func(*Game)) {
@@ -143,6 +148,7 @@ func (game *Game) Update() {
 	for _, entity := range game.entities {
 		entity.Update()
 	}
+    game.mousePosition = Vector2FromRaylib(rl.GetMousePosition())
 }
 
 func (game Game) Draw() {
