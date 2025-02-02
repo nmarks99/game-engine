@@ -3,7 +3,7 @@ package raychip
 import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"github.com/jakecoffman/cp/v2"
-    "math"
+	"math"
 )
 
 type Entity interface {
@@ -14,28 +14,26 @@ type Entity interface {
 }
 
 type EntityBase struct {
-	position       Vector2
-	angle          float64
-	color          rl.Color
-	// updateCallback func(*Entity)
-	// drawCallback   func(*Entity)
-	id             uint64
-	physical       bool
-	velocity       Vector2
-	velocityMax    float64
-	mass           float64
-	elasticity     float64
-	friction       float64
-	cpBody         *cp.Body
-	cpShape        *cp.Shape
+	position    Vector2
+	angle       float64
+	color       rl.Color
+	id          uint64
+	physical    bool
+	velocity    Vector2
+	velocityMax float64
+	mass        float64
+	elasticity  float64
+	friction    float64
+	cpBody      *cp.Body
+	cpShape     *cp.Shape
 }
 
-func (e EntityBase) Id() uint64{
-    return e.id
+func (e EntityBase) Id() uint64 {
+	return e.id
 }
 
 func (e *EntityBase) SetColor(color rl.Color) {
-    e.color = color
+	e.color = color
 }
 
 func (e EntityBase) Color() rl.Color {
