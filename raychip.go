@@ -76,7 +76,7 @@ func (game *Game) SetBackgroundColor(color rl.Color) {
 }
 
 func (game Game) MousePosition() Vector2 {
-    return game.mousePosition
+	return game.mousePosition
 }
 
 func (game *Game) SetDrawCallback(callback func(*Game)) {
@@ -148,7 +148,7 @@ func (game *Game) Update() {
 	for _, entity := range game.entities {
 		entity.Update()
 	}
-    game.mousePosition = Vector2FromRaylib(rl.GetMousePosition())
+	game.mousePosition = Vector2FromRaylib(rl.GetMousePosition())
 }
 
 func (game Game) Draw() {
@@ -162,7 +162,6 @@ func (game *Game) Run() {
 	for !rl.WindowShouldClose() {
 
 		game.Update()
-
 		if game.updateCallback != nil {
 			game.updateCallback(game)
 		}
@@ -170,9 +169,7 @@ func (game *Game) Run() {
 		// ---------- Drawing ----------
 		rl.BeginDrawing()
 		rl.ClearBackground(game.backgroundColor)
-
 		game.Draw()
-
 		if game.drawCallback != nil {
 			game.drawCallback(game)
 		}

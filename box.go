@@ -7,7 +7,7 @@ import (
 )
 
 type Box struct {
-    EntityBase
+	EntityBase
 	width          float64
 	height         float64
 	updateCallback func(*Box)
@@ -16,35 +16,42 @@ type Box struct {
 
 func NewBox(x float64, y float64, width float64, height float64, color rl.Color) Box {
 	bOut := Box{
-        EntityBase: EntityBase{
-            position:    NewVector2(x, y),
-            color:       color,
-            physical:    false,
-        },
-        width:       width,
-        height:      height,
+		EntityBase: EntityBase{
+			position: NewVector2(x, y),
+			color:    color,
+			physical: false,
+		},
+		width:  width,
+		height: height,
 	}
 	bOut.SetDrawCallback(defaultBoxDrawFunc)
 	return bOut
 }
 
-
 func NewPhysicalBox(x float64, y float64, width float64, height float64, mass float64, color rl.Color) Box {
 	bOut := Box{
-        EntityBase: EntityBase{
-            position:    NewVector2(x, y),
-            mass:        mass,
-            color:       color,
-            physical:    true,
-            elasticity:  1.0,
-            friction:    1.0,
-            velocityMax: 800.0,
-        },
-        width:       width,
-        height:      height,
+		EntityBase: EntityBase{
+			position:    NewVector2(x, y),
+			mass:        mass,
+			color:       color,
+			physical:    true,
+			elasticity:  1.0,
+			friction:    1.0,
+			velocityMax: 800.0,
+		},
+		width:  width,
+		height: height,
 	}
 	bOut.SetDrawCallback(defaultBoxDrawFunc)
 	return bOut
+}
+
+func (b Box) Width() float64 {
+	return b.width
+}
+
+func (b Box) Height() float64 {
+	return b.height
 }
 
 func (b Box) limitVelocity(body *cp.Body, gravity cp.Vector, damping float64, dt float64) {
@@ -166,7 +173,7 @@ func (b *Box) OnHover(game *Game, callbackOn func(), callbackOff func()) {
 			callbackOn()
 		} else {
 			callbackOff()
-        }
+		}
 
 	}
 }
