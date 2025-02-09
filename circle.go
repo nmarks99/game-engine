@@ -4,16 +4,13 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"github.com/jakecoffman/cp/v2"
 	"math"
-	// "fmt"
 )
 
 type Circle struct {
 	EntityBase
-	radius float64
-	// updateCallback func(*Circle)
-	// drawCallback   func(*Circle)
-	updateCallbacks []func(*Circle)
-	drawCallbacks   []func(*Circle)
+	radius         float64
+	updateCallback func(*Circle)
+	drawCallback   func(*Circle)
 }
 
 func NewCircle(x float64, y float64, radius float64, color rl.Color) Circle {
@@ -25,7 +22,7 @@ func NewCircle(x float64, y float64, radius float64, color rl.Color) Circle {
 		},
 		radius: radius,
 	}
-	pOut.AddDrawCallback(defaultCircleDrawFunc)
+	pOut.SetDrawCallback(defaultCircleDrawFunc)
 	return pOut
 }
 
@@ -42,7 +39,7 @@ func NewPhysicalCircle(x float64, y float64, radius float64, mass float64, color
 		},
 		radius: radius,
 	}
-	pOut.AddDrawCallback(defaultCircleDrawFunc)
+	pOut.SetDrawCallback(defaultCircleDrawFunc)
 	return pOut
 }
 
@@ -89,40 +86,45 @@ func (c Circle) DefaultDraw() {
 }
 
 func (c *Circle) Update() {
-	for i := range c.updateCallbacks {
-		if c.updateCallbacks[i] != nil {
-			c.updateCallbacks[i](c)
-		}
+	if c.updateCallback != nil {
+		c.updateCallback(c)
 	}
 }
 
 func (c *Circle) Draw() {
-	for i := range c.drawCallbacks {
-		if c.drawCallbacks[i] != nil {
-			c.drawCallbacks[i](c)
-		}
+	if c.drawCallback != nil {
+		c.drawCallback(c)
 	}
 }
 
-func (c *Circle) AddUpdateCallback(callback func(*Circle)) {
-	c.updateCallbacks = append(c.updateCallbacks, callback)
+func (p *Circle) SetDrawCallback(callback func(*Circle)) {
+	p.drawCallback = callback
 }
 
-func (c *Circle) ClearUpdateCallbacks() {
-	c.updateCallbacks = c.updateCallbacks[:0]
-}
+func (c *Circle) SetUpdateCallback(callback func(*Circle)) {
+	var oldUpdateCallback func(*Circle)
+	if c.updateCallback != nil {
+		oldUpdateCallback = c.updateCallback
+	}
 
-func (c *Circle) AddDrawCallback(callback func(*Circle)) {
-	c.drawCallbacks = append(c.drawCallbacks, callback)
-}
-
-func (c *Circle) ClearDrawCallbacks() {
-	c.drawCallbacks = c.drawCallbacks[:0]
+	c.updateCallback = func(c *Circle) {
+		if oldUpdateCallback != nil {
+			oldUpdateCallback(c)
+		}
+		callback(c)
+	}
 }
 
 func (c *Circle) OnClick(game *Game, button rl.MouseButton, state MouseState, callback func()) {
+	var oldUpdateCallback func(*Circle)
+	if c.updateCallback != nil {
+		oldUpdateCallback = c.updateCallback
+	}
 
-	clickCallback := func(c *Circle) {
+	c.updateCallback = func(c *Circle) {
+		if oldUpdateCallback != nil {
+			oldUpdateCallback(c)
+		}
 
 		var clicked bool = false
 		switch state {
@@ -152,8 +154,6 @@ func (c *Circle) OnClick(game *Game, button rl.MouseButton, state MouseState, ca
 
 	}
 
-	c.AddUpdateCallback(clickCallback)
-
 }
 
 func (c *Circle) SetTexture(texture rl.Texture2D) {
@@ -163,7 +163,7 @@ func (c *Circle) SetTexture(texture rl.Texture2D) {
 	// c.drawCallback(c)
 	// }
 	// })
-	c.AddDrawCallback(func(c *Circle) {
+	c.SetDrawCallback(func(c *Circle) {
 		pos := c.Position()
 		textureWidth := float32(texture.Width)
 		textureHeight := float32(texture.Height)
