@@ -17,6 +17,8 @@ type Game struct {
 	updateCallback  func(*Game)
 	drawCallback    func(*Game)
 	mousePosition   Vector2
+	EventBus        EventBus
+	inputs          GameInputs
 }
 
 func NewGame(screenWidth int32, screenHeight int32, targetFPS int32) Game {
@@ -29,6 +31,7 @@ func NewGame(screenWidth int32, screenHeight int32, targetFPS int32) Game {
 		windowName:      "Game",
 		backgroundColor: rl.RayWhite,
 		space:           space,
+		EventBus:        NewEventBus(),
 	}
 	rl.InitWindow(game.screenWidth, game.screenHeight, game.windowName)
 	rl.SetTargetFPS(game.targetFPS)
@@ -142,13 +145,31 @@ func (game *Game) SetDamping(d float64) {
 }
 
 func (game *Game) Update() {
+
+    // step the physics forward if enabled
 	if game.physical {
 		game.space.Step(game.Dt())
 	}
+
+    // Update all game entites
 	for _, entity := range game.entities {
 		entity.Update()
 	}
-	game.mousePosition = Vector2FromRaylib(rl.GetMousePosition())
+
+    // publish inputs if enabled
+    if game.inputs.MouseInputEnable {
+        mouseInputEvent := getMouseInputEvent()
+        game.EventBus.Publish("input.mouse", mouseInputEvent)
+    }
+    if game.inputs.KeyboardInputEnable {
+        // game.EventBus.Publish("input.keyboard", keyboardInputEvent)
+    }
+    if game.inputs.GamepadInputEnable {
+        // game.EventBus.Publish("input.gamepad", gamepadInputEvent)
+    }
+
+    // TODO: remove this
+    game.mousePosition = Vector2FromRaylib(rl.GetMousePosition())
 }
 
 func (game Game) Draw() {
