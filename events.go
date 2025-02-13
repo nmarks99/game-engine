@@ -10,17 +10,22 @@ type Topic struct {
 	typ  reflect.Type
 }
 
+type Subscription struct {
+	function func(any)
+	id       int
+}
+
 type EventBus struct {
-	subscriptions map[Topic][]func(any)
+	subscriptions map[Topic][]Subscription
 }
 
 func NewEventBus() EventBus {
 	return EventBus{
-		subscriptions: make(map[Topic][]func(any)),
+		subscriptions: make(map[Topic][]Subscription),
 	}
 }
 
-func (bus *EventBus) CreateSubscription(topicName string, msgType any, callback any) {
+func (bus *EventBus) CreateSubscription(topicName string, msgType any, callback any) int {
 	typ := reflect.TypeOf(msgType)
 
 	if typ == nil || typ.Kind() == reflect.Pointer {
@@ -43,7 +48,34 @@ func (bus *EventBus) CreateSubscription(topicName string, msgType any, callback 
 		callbackValue.Call([]reflect.Value{reflect.ValueOf(msg)})
 	}
 
-	bus.subscriptions[topic] = append(bus.subscriptions[topic], wrappedCallback)
+	id := len(bus.subscriptions[topic])
+	sub := Subscription{
+		function: wrappedCallback,
+		id:       len(bus.subscriptions[topic]),
+	}
+	bus.subscriptions[topic] = append(bus.subscriptions[topic], sub)
+
+	return id
+}
+
+func (bus *EventBus) RemoveSubscription(topicName string, id int) {
+    for topic, subs := range bus.subscriptions {
+        if topic.name == topicName {
+            if len(subs) > id {
+                newSubs := append(subs[:id], subs[id+1:]...)
+                bus.subscriptions[topic] = newSubs
+                break
+            }
+        }
+    }
+}
+
+func (bus *EventBus) ClearSubscriptions(topicName string) {
+    for topic, subs := range bus.subscriptions {
+        if topic.name == topicName {
+            bus.subscriptions[topic] = subs[:0]
+        }
+    }
 }
 
 func (bus *EventBus) Publish(topicName string, msg any) {
@@ -53,15 +85,24 @@ func (bus *EventBus) Publish(topicName string, msg any) {
 		panic("msg cannot be nil")
 	}
 
-	for topic, cbks := range bus.subscriptions {
+	for topic, subs := range bus.subscriptions {
 		if topicName == topic.name && topic.typ == msgType {
-			for _, cbk := range cbks {
-				cbk(msg)
+			for _, cbk := range subs {
+				cbk.function(msg)
 			}
 			return
 		}
 	}
 	fmt.Printf("Topic %s not found for type %s\n", topicName, msgType)
+}
+
+type Publisher struct {
+	bus   *EventBus
+	topic Topic
+}
+
+func (p *Publisher) Publish(msg any) {
+	p.bus.Publish(p.topic.name, msg)
 }
 
 func (bus *EventBus) CreatePublisher(topicName string, msgType any) *Publisher {
@@ -76,13 +117,4 @@ func (bus *EventBus) CreatePublisher(topicName string, msgType any) *Publisher {
 		bus:   bus,
 		topic: Topic{name: topicName, typ: typ},
 	}
-}
-
-type Publisher struct {
-	bus   *EventBus
-	topic Topic
-}
-
-func (p *Publisher) Publish(msg any) {
-	p.bus.Publish(p.topic.name, msg)
 }
