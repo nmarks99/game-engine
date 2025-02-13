@@ -4,6 +4,7 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"github.com/jakecoffman/cp/v2"
 	"math"
+	// "fmt"
 )
 
 type Circle struct {
@@ -113,6 +114,36 @@ func (c *Circle) SetUpdateCallback(callback func(*Circle)) {
 		}
 		callback(c)
 	}
+}
+
+func (c *Circle) OnClickNew(game *Game, button rl.MouseButton, state MouseState, callback func()) {
+	game.EventBus.CreateSubscription("input.mouse", MouseInputEvent{}, func(input MouseInputEvent) {
+		var clicked = false
+		switch state {
+		case MousePressed:
+			if input.IsButtonPressed(button) {
+				clicked = true
+			}
+		case MouseReleased:
+			if input.IsButtonReleased(button) {
+				clicked = true
+			}
+		case MouseUp:
+			if input.IsButtonUp(button) {
+				clicked = true
+			}
+		case MouseDown:
+			if input.IsButtonDown(button) {
+				clicked = true
+			}
+		}
+
+		if clicked {
+			if rl.CheckCollisionPointCircle(game.mousePosition.ToRaylib(), c.position.ToRaylib(), float32(c.radius)) {
+				callback()
+			}
+		}
+	})
 }
 
 func (c *Circle) OnClick(game *Game, button rl.MouseButton, state MouseState, callback func()) {

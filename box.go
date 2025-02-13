@@ -117,6 +117,38 @@ func (b *Box) SetUpdateCallback(callback func(*Box)) {
 	b.updateCallback = callback
 }
 
+func (b *Box) OnClickNew(game *Game, button rl.MouseButton, state MouseState, callback func()) {
+	game.EventBus.CreateSubscription("input.mouse", MouseInputEvent{}, func(input MouseInputEvent) {
+		var clicked = false
+		switch state {
+		case MousePressed:
+			if input.IsButtonPressed(button) {
+				clicked = true
+			}
+		case MouseReleased:
+			if input.IsButtonReleased(button) {
+				clicked = true
+			}
+		case MouseUp:
+			if input.IsButtonUp(button) {
+				clicked = true
+			}
+		case MouseDown:
+			if input.IsButtonDown(button) {
+				clicked = true
+			}
+		}
+
+		if clicked {
+			// TODO: create rectangle in box constructor
+			boxRect := rl.NewRectangle(float32(b.position.X-b.width/2.0), float32(b.position.Y-b.height/2.0), float32(b.width), float32(b.height))
+			if rl.CheckCollisionPointRec(game.mousePosition.ToRaylib(), boxRect) {
+				callback()
+			}
+		}
+	})
+}
+
 func (b *Box) OnClick(game *Game, button rl.MouseButton, state MouseState, callback func()) {
 	var oldUpdateCallback func(*Box)
 	if b.updateCallback != nil {
