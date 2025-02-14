@@ -7,23 +7,23 @@ import (
 
 func main() {
 	game := NewGame(600, 600, 60)
-    game.EnableMouseInput()
+	game.EnableMouseInput()
 
 	ball := NewCircle(300, 300, 30, rl.Black)
 	game.AddEntity(&ball)
 	box := NewBox(500, 500, 50, 50, rl.Black)
 	game.AddEntity(&box)
 
-    var ballSelect int = 0
-    ballColors := []rl.Color{rl.Black, rl.Red}
-    ball.OnClickNew(&game, rl.MouseButtonLeft, MouseReleased, func(){
-        ballSelect = ballSelect ^ 1
-        ball.SetColor(ballColors[ballSelect])
-    })
+	var ballSelect int = 0
+	ballColors := []rl.Color{rl.Black, rl.Red}
+	ball.OnClick(&game, rl.MouseButtonLeft, MouseReleased, func() {
+		ballSelect = ballSelect ^ 1
+		ball.SetColor(ballColors[ballSelect])
+	})
 
 	var boxSelect int = 0
 	boxColors := []rl.Color{rl.Black, rl.Red}
-	box.OnClickNew(&game, rl.MouseButtonLeft, MouseReleased, func() {
+	box.OnClick(&game, rl.MouseButtonLeft, MouseReleased, func() {
 		boxSelect = boxSelect ^ 1
 		box.SetColor(boxColors[boxSelect])
 	})

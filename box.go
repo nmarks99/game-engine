@@ -117,8 +117,8 @@ func (b *Box) SetUpdateCallback(callback func(*Box)) {
 	b.updateCallback = callback
 }
 
-func (b *Box) OnClickNew(game *Game, button rl.MouseButton, state MouseState, callback func()) {
-	game.EventBus.CreateSubscription("input.mouse", MouseInputEvent{}, func(input MouseInputEvent) {
+func (b *Box) OnClick(game *Game, button rl.MouseButton, state MouseState, callback func()) int {
+	id := game.EventBus.CreateSubscription("input.mouse", MouseInputEvent{}, func(input MouseInputEvent) {
 		var clicked = false
 		switch state {
 		case MousePressed:
@@ -147,65 +147,26 @@ func (b *Box) OnClickNew(game *Game, button rl.MouseButton, state MouseState, ca
 			}
 		}
 	})
+
+	return id
 }
 
-func (b *Box) OnClick(game *Game, button rl.MouseButton, state MouseState, callback func()) {
-	var oldUpdateCallback func(*Box)
-	if b.updateCallback != nil {
-		oldUpdateCallback = b.updateCallback
-	}
-
-	b.updateCallback = func(b *Box) {
-		if oldUpdateCallback != nil {
-			oldUpdateCallback(b)
-		}
-
-		var clicked bool = false
-		switch state {
-		case MouseUp:
-			if rl.IsMouseButtonUp(button) {
-				clicked = true
-			}
-		case MouseDown:
-			if rl.IsMouseButtonDown(button) {
-				clicked = true
-			}
-		case MousePressed:
-			if rl.IsMouseButtonPressed(button) {
-				clicked = true
-			}
-		case MouseReleased:
-			if rl.IsMouseButtonReleased(button) {
-				clicked = true
-			}
-		}
-
-		if clicked {
-			boxRect := rl.NewRectangle(float32(b.position.X-b.width/2.0), float32(b.position.Y-b.height/2.0), float32(b.width), float32(b.height))
-			if rl.CheckCollisionPointRec(game.mousePosition.ToRaylib(), boxRect) {
-				callback()
-			}
-		}
-
-	}
-}
-
-func (b *Box) OnHover(game *Game, callbackOn func(), callbackOff func()) {
-	var oldUpdateCallback func(*Box)
-	if b.updateCallback != nil {
-		oldUpdateCallback = b.updateCallback
-	}
-
-	b.updateCallback = func(b *Box) {
-		if oldUpdateCallback != nil {
-			oldUpdateCallback(b)
-		}
-		buttonRect := rl.NewRectangle(float32(b.position.X-b.width/2.0), float32(b.position.Y-b.height/2.0), float32(b.width), float32(b.height))
-		if rl.CheckCollisionPointRec(game.mousePosition.ToRaylib(), buttonRect) {
-			callbackOn()
-		} else {
-			callbackOff()
-		}
-
-	}
-}
+// func (b *Box) OnHover(game *Game, callbackOn func(), callbackOff func()) {
+// var oldUpdateCallback func(*Box)
+// if b.updateCallback != nil {
+// oldUpdateCallback = b.updateCallback
+// }
+//
+// b.updateCallback = func(b *Box) {
+// if oldUpdateCallback != nil {
+// oldUpdateCallback(b)
+// }
+// buttonRect := rl.NewRectangle(float32(b.position.X-b.width/2.0), float32(b.position.Y-b.height/2.0), float32(b.width), float32(b.height))
+// if rl.CheckCollisionPointRec(game.mousePosition.ToRaylib(), buttonRect) {
+// callbackOn()
+// } else {
+// callbackOff()
+// }
+//
+// }
+// }

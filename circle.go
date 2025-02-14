@@ -116,8 +116,8 @@ func (c *Circle) SetUpdateCallback(callback func(*Circle)) {
 	}
 }
 
-func (c *Circle) OnClickNew(game *Game, button rl.MouseButton, state MouseState, callback func()) {
-	game.EventBus.CreateSubscription("input.mouse", MouseInputEvent{}, func(input MouseInputEvent) {
+func (c *Circle) OnClick(game *Game, button rl.MouseButton, state MouseState, callback func()) int {
+	id := game.EventBus.CreateSubscription("input.mouse", MouseInputEvent{}, func(input MouseInputEvent) {
 		var clicked = false
 		switch state {
 		case MousePressed:
@@ -144,47 +144,8 @@ func (c *Circle) OnClickNew(game *Game, button rl.MouseButton, state MouseState,
 			}
 		}
 	})
-}
 
-func (c *Circle) OnClick(game *Game, button rl.MouseButton, state MouseState, callback func()) {
-	var oldUpdateCallback func(*Circle)
-	if c.updateCallback != nil {
-		oldUpdateCallback = c.updateCallback
-	}
-
-	c.updateCallback = func(c *Circle) {
-		if oldUpdateCallback != nil {
-			oldUpdateCallback(c)
-		}
-
-		var clicked bool = false
-		switch state {
-		case MouseUp:
-			if rl.IsMouseButtonUp(button) {
-				clicked = true
-			}
-		case MouseDown:
-			if rl.IsMouseButtonDown(button) {
-				clicked = true
-			}
-		case MousePressed:
-			if rl.IsMouseButtonPressed(button) {
-				clicked = true
-			}
-		case MouseReleased:
-			if rl.IsMouseButtonReleased(button) {
-				clicked = true
-			}
-		}
-
-		if clicked {
-			if rl.CheckCollisionPointCircle(game.mousePosition.ToRaylib(), c.position.ToRaylib(), float32(c.radius)) {
-				callback()
-			}
-		}
-
-	}
-
+	return id
 }
 
 func (c *Circle) SetTexture(texture rl.Texture2D) {
