@@ -8,8 +8,7 @@ import (
 
 type Box struct {
 	EntityBase
-	width          float64
-	height         float64
+	rectangle      rl.Rectangle
 	updateCallback func(*Box)
 	drawCallback   func(*Box)
 }
@@ -21,8 +20,8 @@ func NewBox(x float64, y float64, width float64, height float64, color rl.Color)
 			color:    color,
 			physical: false,
 		},
-		width:  width,
-		height: height,
+        // rectangle origin at top left vertex
+		rectangle: rl.NewRectangle(float32(x), float32(y), float32(width), float32(height)),
 	}
 	bOut.SetDrawCallback(defaultBoxDrawFunc)
 	return bOut
@@ -39,19 +38,30 @@ func NewPhysicalBox(x float64, y float64, width float64, height float64, mass fl
 			friction:    1.0,
 			velocityMax: 800.0,
 		},
-		width:  width,
-		height: height,
+		rectangle: rl.NewRectangle(float32(x), float32(y), float32(width), float32(height)),
 	}
 	bOut.SetDrawCallback(defaultBoxDrawFunc)
 	return bOut
 }
 
+func (b *Box) SetWidth(width float64) {
+	b.rectangle.Width = float32(width)
+}
+
 func (b Box) Width() float64 {
-	return b.width
+	return float64(b.rectangle.Width)
+}
+
+func (b *Box) SetHeight(height float64) {
+	b.rectangle.Height = float32(height)
 }
 
 func (b Box) Height() float64 {
-	return b.height
+	return float64(b.rectangle.Height)
+}
+
+func (b Box) Rectangle() rl.Rectangle {
+    return b.rectangle
 }
 
 func (b Box) limitVelocity(body *cp.Body, gravity cp.Vector, damping float64, dt float64) {
@@ -70,10 +80,10 @@ func (e *Box) addToGame(game *Game, args ...any) {
 		if body, ok := args[0].(*cp.Body); ok {
 			if shape, ok := args[1].(*cp.Shape); ok {
 				game.physical = true
-				body = game.space.AddBody(cp.NewBody(e.mass, cp.MomentForBox(e.mass, e.width, e.height)))
+				body = game.space.AddBody(cp.NewBody(e.mass, cp.MomentForBox(e.mass, float64(e.rectangle.Width), float64(e.rectangle.Height))))
 				body.SetPosition(cp.Vector{X: e.position.X, Y: e.position.Y})
 				body.SetVelocity(e.velocity.X, e.velocity.Y)
-				shape = game.space.AddShape(cp.NewBox(body, e.width, e.height, 0))
+				shape = game.space.AddShape(cp.NewBox(body, float64(e.rectangle.Width), float64(e.rectangle.Height), 0))
 				shape.SetElasticity(e.elasticity)
 				shape.SetFriction(e.friction)
 				body.SetVelocityUpdateFunc(e.limitVelocity)
@@ -101,8 +111,8 @@ func (b *Box) Draw() {
 func defaultBoxDrawFunc(b *Box) {
 	angle := b.Angle() * 180.0 / math.Pi
 	pos := b.Position()
-	boxRect := rl.NewRectangle(float32(pos.X), float32(pos.Y), float32(b.width), float32(b.height))
-	rl.DrawRectanglePro(boxRect, rl.NewVector2(boxRect.Width/2, boxRect.Height/2), float32(angle), b.color)
+	boxRect := rl.NewRectangle(float32(pos.X), float32(pos.Y), float32(b.rectangle.Width), float32(b.rectangle.Height))
+    rl.DrawRectanglePro(boxRect, rl.NewVector2(boxRect.Width/2, boxRect.Height/2), float32(angle), b.color)
 }
 
 func (b Box) DefaultDraw() {
@@ -140,8 +150,12 @@ func (b *Box) OnClick(game *Game, button rl.MouseButton, state MouseState, callb
 		}
 
 		if clicked {
-			// TODO: create rectangle in box constructor
-			boxRect := rl.NewRectangle(float32(b.position.X-b.width/2.0), float32(b.position.Y-b.height/2.0), float32(b.width), float32(b.height))
+			boxRect := rl.NewRectangle(
+                float32(b.position.X-b.Width()/2.0),
+				float32(b.position.Y-b.Height()/2.0),
+				float32(b.Width()),
+				float32(b.Height()),
+			)
 			if rl.CheckCollisionPointRec(game.mousePosition.ToRaylib(), boxRect) {
 				callback()
 			}
@@ -151,22 +165,13 @@ func (b *Box) OnClick(game *Game, button rl.MouseButton, state MouseState, callb
 	return id
 }
 
-// func (b *Box) OnHover(game *Game, callbackOn func(), callbackOff func()) {
-// var oldUpdateCallback func(*Box)
-// if b.updateCallback != nil {
-// oldUpdateCallback = b.updateCallback
-// }
-//
-// b.updateCallback = func(b *Box) {
-// if oldUpdateCallback != nil {
-// oldUpdateCallback(b)
-// }
-// buttonRect := rl.NewRectangle(float32(b.position.X-b.width/2.0), float32(b.position.Y-b.height/2.0), float32(b.width), float32(b.height))
-// if rl.CheckCollisionPointRec(game.mousePosition.ToRaylib(), buttonRect) {
-// callbackOn()
-// } else {
-// callbackOff()
-// }
-//
-// }
-// }
+func (b Box) CheckMouseCollision(mousePos Vector2) bool {
+    adjRect := b.rectangle
+    adjRect.X -= b.rectangle.Width/2
+    adjRect.Y -= b.rectangle.Height/2
+    if rl.CheckCollisionPointRec(mousePos.ToRaylib(), adjRect) {
+        return true
+    } else {
+        return false
+    }
+}

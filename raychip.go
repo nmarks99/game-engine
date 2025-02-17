@@ -146,30 +146,30 @@ func (game *Game) SetDamping(d float64) {
 
 func (game *Game) Update() {
 
-    // step the physics forward if enabled
+	// step the physics forward if enabled
 	if game.physical {
 		game.space.Step(game.Dt())
 	}
 
-    // Update all game entites
+	// Update all game entites
 	for _, entity := range game.entities {
 		entity.Update()
 	}
 
-    // publish inputs if enabled
-    if game.inputs.MouseInputEnable {
-        mouseInputEvent := getMouseInputEvent()
-        game.EventBus.Publish("input.mouse", mouseInputEvent)
-    }
-    if game.inputs.KeyboardInputEnable {
-        // game.EventBus.Publish("input.keyboard", keyboardInputEvent)
-    }
-    if game.inputs.GamepadInputEnable {
-        // game.EventBus.Publish("input.gamepad", gamepadInputEvent)
-    }
+	// publish inputs if enabled
+	if game.inputs.MouseInputEnable {
+		mouseInputEvent := getMouseInputEvent()
+		game.EventBus.Publish("input.mouse", mouseInputEvent)
+	}
+	if game.inputs.KeyboardInputEnable {
+		// game.EventBus.Publish("input.keyboard", keyboardInputEvent)
+	}
+	if game.inputs.GamepadInputEnable {
+		// game.EventBus.Publish("input.gamepad", gamepadInputEvent)
+	}
 
-    // TODO: remove this
-    game.mousePosition = Vector2FromRaylib(rl.GetMousePosition())
+	// TODO: remove this
+	game.mousePosition = Vector2FromRaylib(rl.GetMousePosition())
 }
 
 func (game Game) Draw() {

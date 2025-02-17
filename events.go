@@ -13,6 +13,7 @@ type Topic struct {
 type Subscription struct {
 	function func(any)
 	id       int
+	active   bool
 }
 
 type EventBus struct {
@@ -52,6 +53,7 @@ func (bus *EventBus) CreateSubscription(topicName string, msgType any, callback 
 	sub := Subscription{
 		function: wrappedCallback,
 		id:       len(bus.subscriptions[topic]),
+		active:   true,
 	}
 	bus.subscriptions[topic] = append(bus.subscriptions[topic], sub)
 
@@ -59,26 +61,53 @@ func (bus *EventBus) CreateSubscription(topicName string, msgType any, callback 
 }
 
 func (bus *EventBus) RemoveSubscription(topicName string, id int) {
-    for topic, subs := range bus.subscriptions {
-        if topic.name == topicName {
-            if len(subs) > id {
-                newSubs := append(subs[:id], subs[id+1:]...)
-                bus.subscriptions[topic] = newSubs
-                break
-            }
-        }
-    }
+	for topic, subs := range bus.subscriptions {
+		if topic.name == topicName {
+			if len(subs) > id {
+				newSubs := append(subs[:id], subs[id+1:]...)
+				bus.subscriptions[topic] = newSubs
+				break
+			}
+		}
+	}
 }
 
 func (bus *EventBus) ClearSubscriptions(topicName string) {
-    for topic, subs := range bus.subscriptions {
-        if topic.name == topicName {
-            bus.subscriptions[topic] = subs[:0]
-        }
-    }
+	for topic, subs := range bus.subscriptions {
+		if topic.name == topicName {
+			bus.subscriptions[topic] = subs[:0]
+		}
+	}
+}
+
+func (bus *EventBus) SuppressSubscription(topicName string, id int) {
+	for topic, subs := range bus.subscriptions {
+		if topic.name == topicName {
+			if len(subs) > id {
+				subs[id].active = false
+				break
+			}
+		}
+	}
+}
+
+func (bus *EventBus) UnsuppressSubscription(topicName string, id int) {
+	for topic, subs := range bus.subscriptions {
+		if topic.name == topicName {
+			if len(subs) > id {
+				subs[id].active = true
+				break
+			}
+		}
+	}
 }
 
 func (bus *EventBus) Publish(topicName string, msg any) {
+
+	if len(bus.subscriptions) == 0 {
+		return
+	}
+
 	msgType := reflect.TypeOf(msg)
 
 	if msgType == nil {
@@ -87,8 +116,10 @@ func (bus *EventBus) Publish(topicName string, msg any) {
 
 	for topic, subs := range bus.subscriptions {
 		if topicName == topic.name && topic.typ == msgType {
-			for _, cbk := range subs {
-				cbk.function(msg)
+			for _, sub := range subs {
+				if sub.active {
+					sub.function(msg)
+				}
 			}
 			return
 		}
